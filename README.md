@@ -2,7 +2,7 @@
 
 Home Assistant integration for Belgee X50 / Geely Coolray.
 
-Version `0.1.3` is an installable read-only preview:
+Version `0.2.0` is an installable read-only preview:
 
 - guided setup in the Home Assistant UI;
 - a private Relay webhook protected by a generated Bearer token;
@@ -11,6 +11,8 @@ Version `0.1.3` is an installable read-only preview:
 - support for the deployed Relay body and the planned v2 envelope;
 - MapKit route payload separation from ordinary entity attributes;
 - privacy-redacted Home Assistant diagnostics;
+- five-minute code pairing with explicit Relay fingerprint confirmation and
+  automatic webhook/Bearer-token delivery;
 - a compact event contract for
   [Belgee X50 Control Center](https://github.com/AlteroAscension/belgee-x50-control-center).
 
@@ -19,16 +21,23 @@ The current production components remain in
 supported transition simulator remains in
 [x50-simulator-addon](https://github.com/AlteroAscension/x50-simulator-addon).
 This preview is intentionally read-only and can run beside the existing YAML
-package. Command ownership, pairing and migration are later milestones.
+package. Command ownership and entity migration are later milestones.
 
 ## Install the preview
 
 Copy `custom_components/belgee_x50` into Home Assistant's
 `/config/custom_components/`, restart Home Assistant and add **Belgee X50**
-from **Settings → Devices & services**. The flow displays the telemetry URL
-and Bearer token that must be entered in X50 Relay. The setup form requires
-the public Home Assistant base URL explicitly; it never silently substitutes
-an internal `192.168.x.x` address for a remotely connected Relay.
+from **Settings → Devices & services**. The flow displays a short-lived
+eight-character code. Enter it in X50 Relay, compare the fingerprint shown on
+both sides and confirm in Home Assistant. Relay then receives the private
+telemetry URL and Bearer token automatically. The setup form requires the
+public Home Assistant base URL explicitly; it never silently substitutes an
+internal `192.168.x.x` address for a remotely connected Relay.
+
+An existing entry can be paired or re-paired from **Configure** by selecting
+`Create a code to pair or re-pair Relay`. Re-pairing rotates only the telemetry
+Bearer token and deliberately preserves the legacy command URL/token during
+the migration period.
 
 For HACS installs, add this repository as a custom integration repository and
 select the latest published semantic-version release.
@@ -58,6 +67,6 @@ will be published only after they become stable public contracts.
 
 ## Status
 
-Read-only preview `0.1.3`: implementation and protocol tests are present.
+Read-only preview `0.2.0`: implementation and protocol tests are present.
 Runtime validation on a disposable Home Assistant installation is required
 before publishing the first tagged release.

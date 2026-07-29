@@ -4,43 +4,63 @@
     "step": {
       "user": {
         "title": "Подключение Belgee X50",
-        "description": "Создайте закрытую точку приёма телеметрии для X50 Relay.",
+        "description": "Подготовьте защищённое подключение X50 Relay к Home Assistant.",
         "data": {
           "name": "Название автомобиля",
           "installation_id": "Постоянный ID установки",
-          "public_base_url": "Публичный адрес Home Assistant",
-          "access_token": "Bearer-токен (оставьте пустым для генерации)"
+          "public_base_url": "Публичный адрес Home Assistant"
         },
         "data_description": {
           "installation_id": "Не используйте IP-адрес. Этот ID отделяет реальное ГУ от установок AVD.",
-          "public_base_url": "Доступный извне базовый адрес, например https://ha.example.com. Локальный адрес 192.168.x.x вне домашней сети работать не будет.",
-          "access_token": "Relay передаёт этот токен в заголовке Authorization."
+          "public_base_url": "Доступный извне базовый адрес, например https://ha.example.com. Локальный адрес 192.168.x.x вне домашней сети работать не будет."
         }
       },
-      "confirm": {
-        "title": "Настройка X50 Relay",
-        "description": "Укажите в Relay адрес телеметрии:\n\n`{webhook_url}`\n\nBearer-токен:\n\n`{access_token}`\n\nСохраните значения перед продолжением."
+      "pair": {
+        "title": "Привязка X50 Relay",
+        "description": "В Relay откройте «Подключить к Home Assistant». Адрес HA: `{public_base_url}`\n\nОдноразовый код:\n\n## `{pairing_code}`\n\nКод действует {expires_minutes} минут. После ввода кода нажмите «Проверить»."
+      },
+      "pair_confirm": {
+        "title": "Подтверждение Relay",
+        "description": "Найдено устройство **{device_name}**, версия `{relay_version}`.\n\nСверьте отпечаток на Relay:\n\n## `{fingerprint}`\n\nЕсли значения совпадают, подтвердите привязку."
       }
     },
     "error": {
-      "invalid_public_url": "Укажите полный публичный адрес с http:// или https://, без параметров запроса и фрагмента."
+      "invalid_public_url": "Укажите полный публичный адрес с http:// или https://, без параметров запроса и фрагмента.",
+      "relay_not_connected": "Relay ещё не предъявил этот код. Введите код на Relay и повторите проверку."
+    },
+    "abort": {
+      "pairing_expired": "Время действия кода истекло. Запустите привязку заново."
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "Подключение Belgee X50",
+        "title": "Настройки Belgee X50",
         "data": {
           "public_base_url": "Публичный адрес Home Assistant",
-          "stale_after_seconds": "Считать недоступным через (секунд)"
+          "stale_after_seconds": "Считать недоступным через (секунд)",
+          "start_pairing": "Создать код для привязки или перепривязки Relay"
         },
         "data_description": {
-          "public_base_url": "Меняется только базовый адрес. ID webhook и Bearer-токен сохраняются."
+          "public_base_url": "Доступный Relay адрес Home Assistant.",
+          "start_pairing": "После подтверждения старый Bearer-токен будет заменён автоматически."
         }
+      },
+      "pair": {
+        "title": "Привязка X50 Relay",
+        "description": "В Relay откройте «Подключить к Home Assistant». Адрес HA: `{public_base_url}`\n\nОдноразовый код:\n\n## `{pairing_code}`\n\nКод действует {expires_minutes} минут. После ввода кода нажмите «Проверить»."
+      },
+      "pair_confirm": {
+        "title": "Подтверждение Relay",
+        "description": "Найдено устройство **{device_name}**, версия `{relay_version}`.\n\nСверьте отпечаток на Relay:\n\n## `{fingerprint}`\n\nПодтверждение заменит старый токен подключения."
       }
     },
     "error": {
-      "invalid_public_url": "Укажите полный публичный адрес с http:// или https://, без параметров запроса и фрагмента."
+      "invalid_public_url": "Укажите полный публичный адрес с http:// или https://, без параметров запроса и фрагмента.",
+      "relay_not_connected": "Relay ещё не предъявил этот код. Введите код на Relay и повторите проверку."
+    },
+    "abort": {
+      "pairing_expired": "Время действия кода истекло. Запустите привязку заново."
     }
   }
 }

@@ -46,3 +46,21 @@ Relay POST + Bearer token
 No browser or Control Center code receives Relay credentials. No command
 entity or service is registered. The current YAML package may remain active
 while values are compared.
+
+## Relay pairing
+
+```text
+authenticated HA Config/Options Flow
+    → opens five-minute one-time code
+Relay + code + per-attempt nonce
+    → claims session, both sides show the same fingerprint
+authenticated HA user
+    → confirms fingerprint
+Relay + private claim secret
+    → receives webhook and Bearer token
+```
+
+The code does not contain credentials. Before HA confirmation, polling returns
+only `pending_confirmation`. A second device cannot take over an existing
+claim, while an identical request can safely retry after a lost response.
+Re-pairing rotates the telemetry token without changing the webhook ID.

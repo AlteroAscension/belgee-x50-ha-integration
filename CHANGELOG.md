@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.0
+
+- added five-minute HA-to-Relay pairing using a human-readable one-time code;
+- added a two-phase claim/confirm exchange: credentials remain unavailable
+  until the authenticated HA user confirms the matching Relay fingerprint;
+- added pairing and re-pairing to integration options, including automatic
+  telemetry Bearer-token rotation;
+- preserved the existing webhook identifier and all legacy HA command
+  settings during re-pairing;
+- added expiry, idempotent retry and claim-secret protections with protocol
+  regression tests.
+
 ## 0.1.3
 
 - fixed HTTP 500 when opening Config Flow: the public URL validator now runs

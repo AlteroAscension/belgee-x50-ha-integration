@@ -4,43 +4,63 @@
     "step": {
       "user": {
         "title": "Connect Belgee X50",
-        "description": "Create a private telemetry endpoint for X50 Relay.",
+        "description": "Prepare a protected X50 Relay connection to Home Assistant.",
         "data": {
           "name": "Vehicle name",
           "installation_id": "Stable installation ID",
-          "public_base_url": "Public Home Assistant URL",
-          "access_token": "Bearer token (leave blank to generate)"
+          "public_base_url": "Public Home Assistant URL"
         },
         "data_description": {
           "installation_id": "Do not use an IP address. This ID separates the real head unit from AVD installations.",
-          "public_base_url": "Externally reachable base URL used by Relay, for example https://ha.example.com. A local 192.168.x.x address will not work outside your home network.",
-          "access_token": "Relay sends this token in the Authorization header."
+          "public_base_url": "Externally reachable base URL, for example https://ha.example.com. A local 192.168.x.x address will not work outside your home network."
         }
       },
-      "confirm": {
-        "title": "Configure X50 Relay",
-        "description": "Set Relay telemetry URL to:\n\n`{webhook_url}`\n\nBearer token:\n\n`{access_token}`\n\nSave these values before continuing."
+      "pair": {
+        "title": "Pair X50 Relay",
+        "description": "Open “Connect to Home Assistant” in Relay. HA address: `{public_base_url}`\n\nOne-time code:\n\n## `{pairing_code}`\n\nThe code is valid for {expires_minutes} minutes. After entering it in Relay, select Check."
+      },
+      "pair_confirm": {
+        "title": "Confirm Relay",
+        "description": "Found **{device_name}**, version `{relay_version}`.\n\nCompare the fingerprint shown in Relay:\n\n## `{fingerprint}`\n\nConfirm only when both values match."
       }
     },
     "error": {
-      "invalid_public_url": "Enter a complete public URL starting with http:// or https://, without a query or fragment."
+      "invalid_public_url": "Enter a complete public URL starting with http:// or https://, without a query or fragment.",
+      "relay_not_connected": "Relay has not claimed this code yet. Enter it in Relay and check again."
+    },
+    "abort": {
+      "pairing_expired": "The pairing code expired. Start pairing again."
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "Belgee X50 connection",
+        "title": "Belgee X50 settings",
         "data": {
           "public_base_url": "Public Home Assistant URL",
-          "stale_after_seconds": "Mark unavailable after (seconds)"
+          "stale_after_seconds": "Mark unavailable after (seconds)",
+          "start_pairing": "Create a code to pair or re-pair Relay"
         },
         "data_description": {
-          "public_base_url": "Change only the base address. Webhook ID and Bearer token remain unchanged."
+          "public_base_url": "The Home Assistant address reachable by Relay.",
+          "start_pairing": "The existing Bearer token is replaced automatically after confirmation."
         }
+      },
+      "pair": {
+        "title": "Pair X50 Relay",
+        "description": "Open “Connect to Home Assistant” in Relay. HA address: `{public_base_url}`\n\nOne-time code:\n\n## `{pairing_code}`\n\nThe code is valid for {expires_minutes} minutes. After entering it in Relay, select Check."
+      },
+      "pair_confirm": {
+        "title": "Confirm Relay",
+        "description": "Found **{device_name}**, version `{relay_version}`.\n\nCompare the fingerprint shown in Relay:\n\n## `{fingerprint}`\n\nConfirmation replaces the old connection token."
       }
     },
     "error": {
-      "invalid_public_url": "Enter a complete public URL starting with http:// or https://, without a query or fragment."
+      "invalid_public_url": "Enter a complete public URL starting with http:// or https://, without a query or fragment.",
+      "relay_not_connected": "Relay has not claimed this code yet. Enter it in Relay and check again."
+    },
+    "abort": {
+      "pairing_expired": "The pairing code expired. Start pairing again."
     }
   }
 }

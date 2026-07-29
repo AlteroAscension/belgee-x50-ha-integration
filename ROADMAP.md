@@ -6,6 +6,7 @@
 - [x] development fixtures and protocol tests;
 - [x] installable Home Assistant project skeleton;
 - [x] read-only setup, Bearer webhook and diagnostics;
+- [x] user-confirmed Relay pairing and re-pairing by one-time code;
 - [ ] live validation against a disposable Home Assistant installation;
 - [ ] signed v2 messages and replay window after Relay dual-publish support.
 
