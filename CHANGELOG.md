@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.3
+
+- fixed HTTP 500 when opening Config Flow: the public URL validator now runs
+  after form submission instead of being embedded as a non-serializable
+  callable in the frontend schema;
+- invalid public URLs are returned as an ordinary localized field error.
+
 ## 0.1.2
 
 - require an explicit externally reachable Home Assistant base URL during

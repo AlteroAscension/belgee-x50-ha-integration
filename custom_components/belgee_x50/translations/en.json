@@ -21,6 +21,9 @@
         "title": "Configure X50 Relay",
         "description": "Set Relay telemetry URL to:\n\n`{webhook_url}`\n\nBearer token:\n\n`{access_token}`\n\nSave these values before continuing."
       }
+    },
+    "error": {
+      "invalid_public_url": "Enter a complete public URL starting with http:// or https://, without a query or fragment."
     }
   },
   "options": {
@@ -35,6 +38,9 @@
           "public_base_url": "Change only the base address. Webhook ID and Bearer token remain unchanged."
         }
       }
+    },
+    "error": {
+      "invalid_public_url": "Enter a complete public URL starting with http:// or https://, without a query or fragment."
     }
   }
 }
