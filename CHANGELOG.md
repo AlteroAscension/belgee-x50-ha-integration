@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.2
+
+- require an explicit externally reachable Home Assistant base URL during
+  setup instead of silently falling back to the internal Home Assistant URL;
+- allow changing that public base URL through integration options without
+  rotating the webhook ID or Bearer token.
+
 ## 0.1.1
 
 - fixed Config Flow loading on Home Assistant: the webhook component is

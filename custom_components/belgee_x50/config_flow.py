@@ -10,12 +10,12 @@ import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult, OptionsFlowWithReload
-from homeassistant.helpers.network import get_url
 
 from .const import (
     CONF_ACCESS_TOKEN,
     CONF_INSTALLATION_ID,
     CONF_NAME,
+    CONF_PUBLIC_BASE_URL,
     CONF_STALE_AFTER,
     CONF_WEBHOOK_ID,
     DEFAULT_NAME,
@@ -24,6 +24,15 @@ from .const import (
     MAX_STALE_AFTER,
     MIN_STALE_AFTER,
 )
+from .urls import normalize_public_base_url
+
+
+def _validate_public_base_url(value: str) -> str:
+    """Expose URL validation errors in the Home Assistant form."""
+    try:
+        return normalize_public_base_url(value)
+    except ValueError as err:
+        raise vol.Invalid(str(err)) from err
 
 
 class X50ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -47,12 +56,19 @@ class X50ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 CONF_INSTALLATION_ID: installation_id,
                 CONF_ACCESS_TOKEN: token or secrets.token_urlsafe(24),
                 CONF_WEBHOOK_ID: uuid.uuid4().hex,
+                CONF_PUBLIC_BASE_URL: normalize_public_base_url(
+                    user_input[CONF_PUBLIC_BASE_URL]
+                ),
             }
             return await self.async_step_confirm()
+        configured_external_url = getattr(self.hass.config, "external_url", None) or ""
         schema = vol.Schema(
             {
                 vol.Required(CONF_NAME, default=DEFAULT_NAME): str,
                 vol.Required(CONF_INSTALLATION_ID, default="belgee-x50"): str,
+                vol.Required(
+                    CONF_PUBLIC_BASE_URL, default=configured_external_url
+                ): vol.All(str, _validate_public_base_url),
                 vol.Optional(CONF_ACCESS_TOKEN, default=""): str,
             }
         )
@@ -61,7 +77,7 @@ class X50ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_confirm(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        base_url = get_url(self.hass, prefer_external=True)
+        base_url = self._pending[CONF_PUBLIC_BASE_URL]
         webhook_url = f"{base_url}/api/webhook/{self._pending[CONF_WEBHOOK_ID]}"
         if user_input is not None:
             return self.async_create_entry(
@@ -84,7 +100,7 @@ class X50ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 class X50OptionsFlow(OptionsFlowWithReload):
-    """Configure availability timing."""
+    """Configure the public endpoint and availability timing."""
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -96,6 +112,9 @@ class X50OptionsFlow(OptionsFlowWithReload):
             data_schema=self.add_suggested_values_to_schema(
                 vol.Schema(
                     {
+                        vol.Required(CONF_PUBLIC_BASE_URL): vol.All(
+                            str, _validate_public_base_url
+                        ),
                         vol.Required(CONF_STALE_AFTER): vol.All(
                             vol.Coerce(int),
                             vol.Range(min=MIN_STALE_AFTER, max=MAX_STALE_AFTER),
@@ -103,6 +122,10 @@ class X50OptionsFlow(OptionsFlowWithReload):
                     }
                 ),
                 {
+                    CONF_PUBLIC_BASE_URL: self.config_entry.options.get(
+                        CONF_PUBLIC_BASE_URL,
+                        self.config_entry.data.get(CONF_PUBLIC_BASE_URL, ""),
+                    ),
                     CONF_STALE_AFTER: self.config_entry.options.get(
                         CONF_STALE_AFTER, DEFAULT_STALE_AFTER
                     )

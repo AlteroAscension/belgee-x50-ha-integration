@@ -10,6 +10,7 @@ CONF_ACCESS_TOKEN = "access_token"
 CONF_WEBHOOK_ID = "webhook_id"
 CONF_NAME = "name"
 CONF_STALE_AFTER = "stale_after_seconds"
+CONF_PUBLIC_BASE_URL = "public_base_url"
 
 DEFAULT_NAME = "Belgee X50"
 DEFAULT_STALE_AFTER = 120

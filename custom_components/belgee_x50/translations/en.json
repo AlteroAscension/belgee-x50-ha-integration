@@ -8,10 +8,12 @@
         "data": {
           "name": "Vehicle name",
           "installation_id": "Stable installation ID",
+          "public_base_url": "Public Home Assistant URL",
           "access_token": "Bearer token (leave blank to generate)"
         },
         "data_description": {
           "installation_id": "Do not use an IP address. This ID separates the real head unit from AVD installations.",
+          "public_base_url": "Externally reachable base URL used by Relay, for example https://ha.example.com. A local 192.168.x.x address will not work outside your home network.",
           "access_token": "Relay sends this token in the Authorization header."
         }
       },
@@ -24,9 +26,13 @@
   "options": {
     "step": {
       "init": {
-        "title": "Belgee X50 availability",
+        "title": "Belgee X50 connection",
         "data": {
+          "public_base_url": "Public Home Assistant URL",
           "stale_after_seconds": "Mark unavailable after (seconds)"
+        },
+        "data_description": {
+          "public_base_url": "Change only the base address. Webhook ID and Bearer token remain unchanged."
         }
       }
     }

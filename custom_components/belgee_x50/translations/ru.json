@@ -8,10 +8,12 @@
         "data": {
           "name": "Название автомобиля",
           "installation_id": "Постоянный ID установки",
+          "public_base_url": "Публичный адрес Home Assistant",
           "access_token": "Bearer-токен (оставьте пустым для генерации)"
         },
         "data_description": {
           "installation_id": "Не используйте IP-адрес. Этот ID отделяет реальное ГУ от установок AVD.",
+          "public_base_url": "Доступный извне базовый адрес, например https://ha.example.com. Локальный адрес 192.168.x.x вне домашней сети работать не будет.",
           "access_token": "Relay передаёт этот токен в заголовке Authorization."
         }
       },
@@ -24,9 +26,13 @@
   "options": {
     "step": {
       "init": {
-        "title": "Доступность Belgee X50",
+        "title": "Подключение Belgee X50",
         "data": {
+          "public_base_url": "Публичный адрес Home Assistant",
           "stale_after_seconds": "Считать недоступным через (секунд)"
+        },
+        "data_description": {
+          "public_base_url": "Меняется только базовый адрес. ID webhook и Bearer-токен сохраняются."
         }
       }
     }

@@ -2,7 +2,7 @@
 
 Home Assistant integration for Belgee X50 / Geely Coolray.
 
-Version `0.1.1` is an installable read-only preview:
+Version `0.1.2` is an installable read-only preview:
 
 - guided setup in the Home Assistant UI;
 - a private Relay webhook protected by a generated Bearer token;
@@ -26,10 +26,12 @@ package. Command ownership, pairing and migration are later milestones.
 Copy `custom_components/belgee_x50` into Home Assistant's
 `/config/custom_components/`, restart Home Assistant and add **Belgee X50**
 from **Settings → Devices & services**. The flow displays the telemetry URL
-and Bearer token that must be entered in X50 Relay.
+and Bearer token that must be entered in X50 Relay. The setup form requires
+the public Home Assistant base URL explicitly; it never silently substitutes
+an internal `192.168.x.x` address for a remotely connected Relay.
 
-For HACS development installs, add this repository as a custom integration
-repository. No release archive is published yet.
+For HACS installs, add this repository as a custom integration repository and
+select the latest published semantic-version release.
 
 ## Development
 
@@ -56,6 +58,6 @@ will be published only after they become stable public contracts.
 
 ## Status
 
-Read-only preview `0.1.1`: implementation and protocol tests are present.
+Read-only preview `0.1.2`: implementation and protocol tests are present.
 Runtime validation on a disposable Home Assistant installation is required
 before publishing the first tagged release.

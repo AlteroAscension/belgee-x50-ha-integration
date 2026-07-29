@@ -14,6 +14,7 @@ from homeassistant.helpers.network import get_url
 from .const import (
     CONF_ACCESS_TOKEN,
     CONF_INSTALLATION_ID,
+    CONF_PUBLIC_BASE_URL,
     CONF_STALE_AFTER,
     CONF_WEBHOOK_ID,
     DATA_COORDINATOR,
@@ -85,7 +86,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         allowed_methods=("POST",),
         local_only=False,
     )
-    base_url = get_url(hass, prefer_external=True)
+    base_url = entry.options.get(
+        CONF_PUBLIC_BASE_URL, entry.data.get(CONF_PUBLIC_BASE_URL)
+    )
+    if not base_url:
+        # Compatibility with entries created by the initial preview.
+        base_url = get_url(hass, prefer_external=True)
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {
         DATA_COORDINATOR: coordinator,
         DATA_WEBHOOK_URL: f"{base_url}/api/webhook/{webhook_id}",
