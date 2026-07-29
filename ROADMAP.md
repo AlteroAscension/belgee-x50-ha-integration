@@ -2,17 +2,20 @@
 
 ## 1. Foundation
 
-- stable public data model;
-- development fixtures and automated tests;
-- Home Assistant project skeleton;
-- read-only setup and diagnostics.
+- [x] stable compact data model for the preview;
+- [x] development fixtures and protocol tests;
+- [x] installable Home Assistant project skeleton;
+- [x] read-only setup, Bearer webhook and diagnostics;
+- [ ] live validation against a disposable Home Assistant installation;
+- [ ] signed v2 messages and replay window after Relay dual-publish support.
 
 ## 2. Entities
 
-- vehicle and component devices;
-- telemetry sensors;
-- availability and version diagnostics;
-- user-facing translations.
+- [x] vehicle and component devices;
+- [x] core telemetry sensors and GPS tracker;
+- [x] availability and version diagnostics;
+- [x] Russian and English setup translations;
+- [ ] complete parity report against the legacy YAML entities.
 
 ## 3. Control Center connection
 

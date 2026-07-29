@@ -1,0 +1,34 @@
+{
+  "title": "Belgee X50",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Подключение Belgee X50",
+        "description": "Создайте закрытую точку приёма телеметрии для X50 Relay.",
+        "data": {
+          "name": "Название автомобиля",
+          "installation_id": "Постоянный ID установки",
+          "access_token": "Bearer-токен (оставьте пустым для генерации)"
+        },
+        "data_description": {
+          "installation_id": "Не используйте IP-адрес. Этот ID отделяет реальное ГУ от установок AVD.",
+          "access_token": "Relay передаёт этот токен в заголовке Authorization."
+        }
+      },
+      "confirm": {
+        "title": "Настройка X50 Relay",
+        "description": "Укажите в Relay адрес телеметрии:\n\n`{webhook_url}`\n\nBearer-токен:\n\n`{access_token}`\n\nСохраните значения перед продолжением."
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Доступность Belgee X50",
+        "data": {
+          "stale_after_seconds": "Считать недоступным через (секунд)"
+        }
+      }
+    }
+  }
+}

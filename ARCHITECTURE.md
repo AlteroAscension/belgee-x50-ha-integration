@@ -29,3 +29,20 @@ telemetry remains a responsibility of Gateway and Relay.
 
 Security-sensitive implementation details are intentionally excluded from the
 public pre-release architecture.
+
+## Implemented preview boundary
+
+The `0.1.0` preview implements the first read-only vertical slice:
+
+```text
+Relay POST + Bearer token
+    → v1/v2 normalization
+    → compact push coordinator
+    ├─ HA devices/entities
+    ├─ belgee_x50_telemetry event
+    └─ belgee_x50_route_snapshot event (heavy payload, once supplied)
+```
+
+No browser or Control Center code receives Relay credentials. No command
+entity or service is registered. The current YAML package may remain active
+while values are compared.

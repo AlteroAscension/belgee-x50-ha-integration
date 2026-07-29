@@ -1,0 +1,21 @@
+{
+  "vehicle_properties": {
+    "ipk_remaining_range": {"kilometers": 412},
+    "ipk_total_odometer": {"kilometers": 26175.4}
+  },
+  "vehicle_state": {"speed_kmh": 54.2, "gear": "D"},
+  "settings_global": {"ignition_state": "on"},
+  "gateway": {"version": "2.24.0", "controls_enabled": false},
+  "relay": {
+    "version": "2.5.0",
+    "sample_timestamp_ms": 1780000000000,
+    "device_kind": "head_unit",
+    "gps_location": {"latitude": 55.7, "longitude": 37.5, "accuracy": 8.2}
+  },
+  "navigation": {
+    "enabled": true,
+    "route_length_m": 15000,
+    "progress_m": 2400,
+    "exact_route_id": "route-1"
+  }
+}
