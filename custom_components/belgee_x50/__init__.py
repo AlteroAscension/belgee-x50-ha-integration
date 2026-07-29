@@ -5,10 +5,10 @@ from __future__ import annotations
 from typing import Any
 
 from aiohttp import web
+from homeassistant.components import webhook
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import webhook
 from homeassistant.helpers.network import get_url
 
 from .const import (
