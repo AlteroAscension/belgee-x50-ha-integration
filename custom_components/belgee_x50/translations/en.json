@@ -8,11 +8,18 @@
         "data": {
           "name": "Vehicle name",
           "installation_id": "Stable installation ID",
-          "public_base_url": "Public Home Assistant URL"
+          "public_base_url": "Public Home Assistant URL",
+          "connection_mode": "Connection mode",
+          "gateway_url": "X50 Gateway URL",
+          "gateway_token": "Gateway token (optional for reads)",
+          "gateway_poll_seconds": "Gateway polling interval (seconds)"
         },
         "data_description": {
           "installation_id": "Do not use an IP address. This ID separates the real head unit from AVD installations.",
-          "public_base_url": "Externally reachable base URL, for example https://ha.example.com. A local 192.168.x.x address will not work outside your home network."
+          "public_base_url": "Externally reachable base URL, for example https://ha.example.com. A local 192.168.x.x address will not work outside your home network.",
+          "connection_mode": "relay accepts Relay push; gateway polls Gateway directly; auto prefers Relay and falls back to Gateway.",
+          "gateway_url": "An address reachable from HA, for example http://gateway-vpn-address:8080. It can be empty in relay mode.",
+          "gateway_token": "Stored for future protected operations. Current direct Gateway telemetry is read-only."
         }
       },
       "pair": {
@@ -26,6 +33,9 @@
     },
     "error": {
       "invalid_public_url": "Enter a complete public URL starting with http:// or https://, without a query or fragment.",
+      "public_url_required": "A public Home Assistant URL is required to pair Relay.",
+      "invalid_gateway_url": "Enter a complete Gateway URL starting with http:// or https://, without a query or fragment.",
+      "gateway_url_required": "Gateway URL is required for direct mode.",
       "relay_not_connected": "Relay has not claimed this code yet. Enter it in Relay and check again."
     },
     "abort": {
@@ -39,11 +49,17 @@
         "data": {
           "public_base_url": "Public Home Assistant URL",
           "stale_after_seconds": "Mark unavailable after (seconds)",
-          "start_pairing": "Create a code to pair or re-pair Relay"
+          "start_pairing": "Create a code to pair or re-pair Relay",
+          "connection_mode": "Connection mode",
+          "gateway_url": "X50 Gateway URL",
+          "gateway_token": "Gateway token",
+          "gateway_poll_seconds": "Gateway polling interval (seconds)"
         },
         "data_description": {
           "public_base_url": "The Home Assistant address reachable by Relay.",
-          "start_pairing": "The existing Bearer token is replaced automatically after confirmation."
+          "start_pairing": "The existing Bearer token is replaced automatically after confirmation.",
+          "connection_mode": "The mode can be changed after installation without removing the integration.",
+          "gateway_url": "Required by gateway mode and the auto fallback."
         }
       },
       "pair": {
@@ -57,6 +73,9 @@
     },
     "error": {
       "invalid_public_url": "Enter a complete public URL starting with http:// or https://, without a query or fragment.",
+      "public_url_required": "A public Home Assistant URL is required to pair Relay.",
+      "invalid_gateway_url": "Enter a complete Gateway URL starting with http:// or https://, without a query or fragment.",
+      "gateway_url_required": "Gateway URL is required for direct mode.",
       "relay_not_connected": "Relay has not claimed this code yet. Enter it in Relay and check again."
     },
     "abort": {

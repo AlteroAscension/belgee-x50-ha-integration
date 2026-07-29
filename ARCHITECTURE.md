@@ -30,6 +30,21 @@ telemetry remains a responsibility of Gateway and Relay.
 Security-sensitive implementation details are intentionally excluded from the
 public pre-release architecture.
 
+## Transport selection
+
+The config entry owns a runtime-selectable transport:
+
+- `relay` accepts only authenticated webhook updates;
+- `gateway` polls a directly reachable Gateway and acknowledges but ignores
+  Relay pushes;
+- `auto` uses Relay while its last message is fresh and polls Gateway as a
+  fallback.
+
+Changing transport reloads the config entry; it does not require reinstalling
+the integration. Relay may therefore be paired after an initial Gateway-only
+deployment. Gateway access is expected over a trusted LAN or VPN. Current
+direct polling is read-only.
+
 ## Implemented preview boundary
 
 The `0.1.0` preview implements the first read-only vertical slice:

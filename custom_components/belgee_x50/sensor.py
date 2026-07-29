@@ -61,6 +61,14 @@ DESCRIPTIONS = (
         native_unit_of_measurement=UnitOfLength.METERS, device_class=SensorDeviceClass.DISTANCE,
         state_class=SensorStateClass.MEASUREMENT, diagnostic=True
     ),
+    X50SensorDescription(
+        key="connection_mode", name="Connection mode", device_kind="gateway",
+        diagnostic=True
+    ),
+    X50SensorDescription(
+        key="active_transport", name="Active transport", device_kind="gateway",
+        diagnostic=True
+    ),
 )
 
 

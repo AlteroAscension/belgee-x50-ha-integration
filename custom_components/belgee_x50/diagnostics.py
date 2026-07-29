@@ -10,6 +10,7 @@ from homeassistant.helpers.redact import async_redact_data
 
 from .const import (
     CONF_ACCESS_TOKEN,
+    CONF_GATEWAY_TOKEN,
     CONF_WEBHOOK_ID,
     DATA_COORDINATOR,
     DOMAIN,
@@ -17,6 +18,7 @@ from .const import (
 
 REDACT = {
     CONF_ACCESS_TOKEN,
+    CONF_GATEWAY_TOKEN,
     CONF_WEBHOOK_ID,
     "latitude",
     "longitude",
@@ -43,4 +45,7 @@ async def async_get_config_entry_diagnostics(
         "last_message_id": (
             coordinator.last_message.message_id if coordinator.last_message else None
         ),
+        "connection_mode": coordinator.connection_mode,
+        "active_transport": coordinator.active_transport,
+        "last_transport_error": coordinator.last_transport_error,
     }

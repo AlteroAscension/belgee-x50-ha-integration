@@ -13,19 +13,31 @@ from homeassistant.config_entries import ConfigFlowResult, OptionsFlowWithReload
 
 from .const import (
     CONF_ACCESS_TOKEN,
+    CONF_CONNECTION_MODE,
+    CONF_GATEWAY_POLL_SECONDS,
+    CONF_GATEWAY_TOKEN,
+    CONF_GATEWAY_URL,
     CONF_INSTALLATION_ID,
     CONF_NAME,
     CONF_PUBLIC_BASE_URL,
     CONF_START_PAIRING,
     CONF_STALE_AFTER,
     CONF_WEBHOOK_ID,
+    CONNECTION_AUTO,
+    CONNECTION_GATEWAY,
+    CONNECTION_MODES,
+    CONNECTION_RELAY,
     DATA_PAIRING_MANAGER,
     DEFAULT_NAME,
+    DEFAULT_GATEWAY_POLL_SECONDS,
     DEFAULT_STALE_AFTER,
     DOMAIN,
     MAX_STALE_AFTER,
+    MAX_GATEWAY_POLL_SECONDS,
     MIN_STALE_AFTER,
+    MIN_GATEWAY_POLL_SECONDS,
 )
+from .gateway import normalize_gateway_url
 from .pairing import PairingError, PairingManager, PairingSession
 from .urls import normalize_public_base_url
 
@@ -62,13 +74,31 @@ class X50ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> ConfigFlowResult:
         errors: dict[str, str] = {}
         if user_input is not None:
-            try:
-                public_base_url = normalize_public_base_url(
-                    user_input[CONF_PUBLIC_BASE_URL]
-                )
-            except ValueError:
-                errors[CONF_PUBLIC_BASE_URL] = "invalid_public_url"
-            else:
+            mode = str(user_input.get(CONF_CONNECTION_MODE, CONNECTION_RELAY))
+            public_value = str(
+                user_input.get(CONF_PUBLIC_BASE_URL, "")
+            ).strip()
+            public_base_url = ""
+            if public_value:
+                try:
+                    public_base_url = normalize_public_base_url(public_value)
+                except ValueError:
+                    errors[CONF_PUBLIC_BASE_URL] = "invalid_public_url"
+            if mode == CONNECTION_RELAY and not public_base_url:
+                errors[CONF_PUBLIC_BASE_URL] = "public_url_required"
+            gateway_value = str(user_input.get(CONF_GATEWAY_URL, "")).strip()
+            gateway_url = ""
+            if gateway_value:
+                try:
+                    gateway_url = normalize_gateway_url(gateway_value)
+                except ValueError:
+                    errors[CONF_GATEWAY_URL] = "invalid_gateway_url"
+            if mode == CONNECTION_GATEWAY and not gateway_url:
+                errors[CONF_GATEWAY_URL] = "gateway_url_required"
+            if mode == CONNECTION_AUTO and not gateway_url \
+                    and not public_base_url:
+                errors[CONF_PUBLIC_BASE_URL] = "public_url_required"
+            if not errors:
                 installation_id = user_input[CONF_INSTALLATION_ID].strip()
                 await self.async_set_unique_id(installation_id)
                 self._abort_if_unique_id_configured()
@@ -78,9 +108,26 @@ class X50ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_ACCESS_TOKEN: secrets.token_urlsafe(24),
                     CONF_WEBHOOK_ID: uuid.uuid4().hex,
                     CONF_PUBLIC_BASE_URL: public_base_url,
+                    CONF_CONNECTION_MODE: mode,
+                    CONF_GATEWAY_URL: gateway_url,
+                    CONF_GATEWAY_TOKEN: str(
+                        user_input.get(CONF_GATEWAY_TOKEN, "")
+                    ).strip(),
+                    CONF_GATEWAY_POLL_SECONDS: int(
+                        user_input.get(
+                            CONF_GATEWAY_POLL_SECONDS,
+                            DEFAULT_GATEWAY_POLL_SECONDS,
+                        )
+                    ),
                 }
-                self._open_pairing()
-                return await self.async_step_pair()
+                if mode == CONNECTION_RELAY or (
+                    mode == CONNECTION_AUTO and not gateway_url
+                ):
+                    self._open_pairing()
+                    return await self.async_step_pair()
+                return self.async_create_entry(
+                    title=self._pending[CONF_NAME], data=self._pending
+                )
 
         configured_external_url = getattr(self.hass.config, "external_url", None) or ""
         values = user_input or {}
@@ -93,12 +140,37 @@ class X50ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_INSTALLATION_ID,
                     default=values.get(CONF_INSTALLATION_ID, "belgee-x50"),
                 ): str,
-                vol.Required(
+                vol.Optional(
                     CONF_PUBLIC_BASE_URL,
                     default=values.get(
                         CONF_PUBLIC_BASE_URL, configured_external_url
                     ),
                 ): str,
+                vol.Required(
+                    CONF_CONNECTION_MODE,
+                    default=values.get(CONF_CONNECTION_MODE, CONNECTION_RELAY),
+                ): vol.In(CONNECTION_MODES),
+                vol.Optional(
+                    CONF_GATEWAY_URL,
+                    default=values.get(CONF_GATEWAY_URL, ""),
+                ): str,
+                vol.Optional(
+                    CONF_GATEWAY_TOKEN,
+                    default=values.get(CONF_GATEWAY_TOKEN, ""),
+                ): str,
+                vol.Required(
+                    CONF_GATEWAY_POLL_SECONDS,
+                    default=values.get(
+                        CONF_GATEWAY_POLL_SECONDS,
+                        DEFAULT_GATEWAY_POLL_SECONDS,
+                    ),
+                ): vol.All(
+                    vol.Coerce(int),
+                    vol.Range(
+                        min=MIN_GATEWAY_POLL_SECONDS,
+                        max=MAX_GATEWAY_POLL_SECONDS,
+                    ),
+                ),
             }
         )
         return self.async_show_form(
@@ -189,15 +261,35 @@ class X50OptionsFlow(OptionsFlowWithReload):
     ) -> ConfigFlowResult:
         errors: dict[str, str] = {}
         if user_input is not None:
-            try:
-                public_base_url = normalize_public_base_url(
-                    user_input[CONF_PUBLIC_BASE_URL]
-                )
-            except ValueError:
-                errors[CONF_PUBLIC_BASE_URL] = "invalid_public_url"
-            else:
+            mode = str(user_input.get(CONF_CONNECTION_MODE, CONNECTION_RELAY))
+            public_value = str(
+                user_input.get(CONF_PUBLIC_BASE_URL, "")
+            ).strip()
+            public_base_url = ""
+            if public_value:
+                try:
+                    public_base_url = normalize_public_base_url(public_value)
+                except ValueError:
+                    errors[CONF_PUBLIC_BASE_URL] = "invalid_public_url"
+            start_pairing_requested = bool(
+                user_input.get(CONF_START_PAIRING, False)
+            )
+            if (mode == CONNECTION_RELAY or start_pairing_requested) \
+                    and not public_base_url:
+                errors[CONF_PUBLIC_BASE_URL] = "public_url_required"
+            gateway_value = str(user_input.get(CONF_GATEWAY_URL, "")).strip()
+            gateway_url = ""
+            if gateway_value:
+                try:
+                    gateway_url = normalize_gateway_url(gateway_value)
+                except ValueError:
+                    errors[CONF_GATEWAY_URL] = "invalid_gateway_url"
+            if mode == CONNECTION_GATEWAY and not gateway_url:
+                errors[CONF_GATEWAY_URL] = "gateway_url_required"
+            if not errors:
                 data = dict(user_input)
                 data[CONF_PUBLIC_BASE_URL] = public_base_url
+                data[CONF_GATEWAY_URL] = gateway_url
                 start_pairing = bool(data.pop(CONF_START_PAIRING, False))
                 if start_pairing:
                     self._pending_options = data
@@ -226,18 +318,48 @@ class X50OptionsFlow(OptionsFlowWithReload):
                 CONF_STALE_AFTER, DEFAULT_STALE_AFTER
             ),
             CONF_START_PAIRING: False,
+            CONF_CONNECTION_MODE: self.config_entry.options.get(
+                CONF_CONNECTION_MODE,
+                self.config_entry.data.get(CONF_CONNECTION_MODE, CONNECTION_RELAY),
+            ),
+            CONF_GATEWAY_URL: self.config_entry.options.get(
+                CONF_GATEWAY_URL,
+                self.config_entry.data.get(CONF_GATEWAY_URL, ""),
+            ),
+            CONF_GATEWAY_TOKEN: self.config_entry.options.get(
+                CONF_GATEWAY_TOKEN,
+                self.config_entry.data.get(CONF_GATEWAY_TOKEN, ""),
+            ),
+            CONF_GATEWAY_POLL_SECONDS: self.config_entry.options.get(
+                CONF_GATEWAY_POLL_SECONDS,
+                self.config_entry.data.get(
+                    CONF_GATEWAY_POLL_SECONDS, DEFAULT_GATEWAY_POLL_SECONDS
+                ),
+            ),
         }
         return self.async_show_form(
             step_id="init",
             data_schema=self.add_suggested_values_to_schema(
                 vol.Schema(
                     {
-                        vol.Required(CONF_PUBLIC_BASE_URL): str,
+                        vol.Optional(CONF_PUBLIC_BASE_URL): str,
                         vol.Required(CONF_STALE_AFTER): vol.All(
                             vol.Coerce(int),
                             vol.Range(min=MIN_STALE_AFTER, max=MAX_STALE_AFTER),
                         ),
                         vol.Optional(CONF_START_PAIRING): bool,
+                        vol.Required(CONF_CONNECTION_MODE): vol.In(
+                            CONNECTION_MODES
+                        ),
+                        vol.Optional(CONF_GATEWAY_URL): str,
+                        vol.Optional(CONF_GATEWAY_TOKEN): str,
+                        vol.Required(CONF_GATEWAY_POLL_SECONDS): vol.All(
+                            vol.Coerce(int),
+                            vol.Range(
+                                min=MIN_GATEWAY_POLL_SECONDS,
+                                max=MAX_GATEWAY_POLL_SECONDS,
+                            ),
+                        ),
                     }
                 ),
                 values,

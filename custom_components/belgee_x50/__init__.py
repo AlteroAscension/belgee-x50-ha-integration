@@ -66,7 +66,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             return web.Response(status=400, text="invalid payload")
         if message.installation_id != installation_id:
             return web.Response(status=403, text="installation mismatch")
-        coordinator.async_ingest(message)
+        accepted = coordinator.async_ingest(message)
+        if not accepted:
+            return web.Response(status=202, text="ignored in gateway mode")
         hass.bus.async_fire(
             EVENT_TELEMETRY,
             {

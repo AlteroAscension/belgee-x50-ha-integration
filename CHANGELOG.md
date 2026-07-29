@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.0
+
+- added switchable `relay`, `gateway` and `auto` connection modes;
+- added direct read-only polling of a Gateway reachable from HA;
+- added deduplicated MapKit route snapshot reads in direct/Auto mode;
+- made the public HA URL optional for a Gateway-only installation;
+- added Relay-first/Gateway-fallback transport arbitration;
+- exposed configured and active transport as diagnostics;
+- allowed changing topology and adding/re-pairing Relay after installation.
+
 ## 0.2.0
 
 - added five-minute HA-to-Relay pairing using a human-readable one-time code;
