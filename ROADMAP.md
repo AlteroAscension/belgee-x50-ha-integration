@@ -6,9 +6,9 @@
 - [x] development fixtures and protocol tests;
 - [x] installable Home Assistant project skeleton;
 - [x] read-only setup, Bearer webhook and diagnostics;
-- [x] user-confirmed Relay pairing and re-pairing by one-time code;
-- [x] runtime-selectable Relay, direct Gateway and Auto transport modes;
-- [x] installation without Relay and later Relay pairing;
+- [x] user-confirmed independent Relay/Gateway pairing by one-time code;
+- [x] runtime-selectable Relay push, Gateway push, Auto and local polling;
+- [x] installation with either device and later pairing of the other;
 - [ ] live validation against a disposable Home Assistant installation;
 - [ ] signed v2 messages and replay window after Relay dual-publish support.
 - [ ] protected direct-Gateway command pairing and command ownership;

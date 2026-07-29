@@ -13,6 +13,7 @@ from homeassistant.helpers.network import get_url
 
 from .const import (
     CONF_ACCESS_TOKEN,
+    CONF_GATEWAY_ACCESS_TOKEN,
     CONF_INSTALLATION_ID,
     CONF_PUBLIC_BASE_URL,
     CONF_STALE_AFTER,
@@ -51,13 +52,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     webhook_id = entry.data[CONF_WEBHOOK_ID]
     token = entry.data[CONF_ACCESS_TOKEN]
+    gateway_token = entry.data.get(CONF_GATEWAY_ACCESS_TOKEN, "")
     installation_id = entry.data[CONF_INSTALLATION_ID]
 
     async def handle_webhook(
         hass: HomeAssistant, webhook_id: str, request: Any
     ) -> Any:
         supplied = request.headers.get("Authorization", "")
-        if supplied != f"Bearer {token}":
+        if supplied == f"Bearer {token}":
+            transport = "relay"
+        elif gateway_token and supplied == f"Bearer {gateway_token}":
+            transport = "gateway"
+        else:
             return web.Response(status=401, text="unauthorized")
         try:
             raw = await request.json()
@@ -66,7 +72,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             return web.Response(status=400, text="invalid payload")
         if message.installation_id != installation_id:
             return web.Response(status=403, text="installation mismatch")
-        accepted = coordinator.async_ingest(message)
+        accepted = coordinator.async_ingest(message, transport)
         if not accepted:
             return web.Response(status=202, text="ignored in gateway mode")
         hass.bus.async_fire(

@@ -110,6 +110,30 @@ class PairingManagerTest(unittest.TestCase):
             )
         )
 
+    def test_pairing_code_is_bound_to_device_type(self) -> None:
+        session = self.manager.open({
+            **self.credentials,
+            "source_kind": "gateway",
+        })
+        with self.assertRaisesRegex(PairingError, "wrong_device_type"):
+            self.manager.claim(
+                session.code,
+                device_id="relay-123",
+                device_name="Relay",
+                relay_version="2.17.0",
+                request_nonce="unique-request-nonce-123",
+                source_kind="relay",
+            )
+        claim = self.manager.claim(
+            session.code,
+            device_id="gateway-123",
+            device_name="Gateway",
+            relay_version="2.25.0",
+            request_nonce="unique-request-nonce-456",
+            source_kind="gateway",
+        )
+        self.assertEqual("pending_confirmation", claim["status"])
+
 
 if __name__ == "__main__":
     unittest.main()

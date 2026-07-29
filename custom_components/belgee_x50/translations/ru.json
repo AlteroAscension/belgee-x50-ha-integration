@@ -4,12 +4,13 @@
     "step": {
       "user": {
         "title": "Подключение Belgee X50",
-        "description": "Подготовьте защищённое подключение X50 Relay к Home Assistant.",
+        "description": "Выберите, как X50 Relay и Gateway будут отправлять данные в Home Assistant.",
         "data": {
           "name": "Название автомобиля",
           "installation_id": "Постоянный ID установки",
           "public_base_url": "Публичный адрес Home Assistant",
           "connection_mode": "Способ подключения",
+          "pairing_device": "Устройство для первой привязки",
           "gateway_url": "Адрес X50 Gateway",
           "gateway_token": "Токен Gateway (необязательно для чтения)",
           "gateway_poll_seconds": "Интервал опроса Gateway (секунд)"
@@ -17,26 +18,27 @@
         "data_description": {
           "installation_id": "Не используйте IP-адрес. Этот ID отделяет реальное ГУ от установок AVD.",
           "public_base_url": "Доступный извне базовый адрес, например https://ha.example.com. Локальный адрес 192.168.x.x вне домашней сети работать не будет.",
-          "connection_mode": "relay — принимать push от Relay; gateway — опрашивать Gateway напрямую; auto — использовать Relay, а при его отсутствии переключаться на Gateway.",
-          "gateway_url": "Доступный из HA адрес, например http://gateway-vpn-address:8080. Для режима relay можно оставить пустым.",
+          "connection_mode": "relay — push от Relay; gateway_push — исходящий push от Gateway; auto — оба канала с приоритетом свежего Relay; gateway_poll — локальная диагностика.",
+          "pairing_device": "Relay и Gateway получают разные токены. В Auto выберите, кого привязать первым.",
+          "gateway_url": "Нужен только для локального gateway_poll. Обычному Gateway push не нужен VPN или входящий адрес.",
           "gateway_token": "Сохраняется для будущих защищённых операций. Текущая телеметрия Gateway доступна только для чтения."
         }
       },
       "pair": {
-        "title": "Привязка X50 Relay",
-        "description": "В Relay откройте «Подключить к Home Assistant». Адрес HA: `{public_base_url}`\n\nОдноразовый код:\n\n## `{pairing_code}`\n\nКод действует {expires_minutes} минут. После ввода кода нажмите «Проверить»."
+        "title": "Привязка устройства X50",
+        "description": "Введите этот код в выбранном Relay или Gateway. Адрес HA: `{public_base_url}`\n\nОдноразовый код:\n\n## `{pairing_code}`\n\nКод действует {expires_minutes} минут. Затем нажмите «Проверить»."
       },
       "pair_confirm": {
-        "title": "Подтверждение Relay",
-        "description": "Найдено устройство **{device_name}**, версия `{relay_version}`.\n\nСверьте отпечаток на Relay:\n\n## `{fingerprint}`\n\nЕсли значения совпадают, подтвердите привязку."
+        "title": "Подтверждение устройства X50",
+        "description": "Найдено устройство **{device_name}**, версия `{relay_version}`.\n\nСверьте отпечаток на устройстве:\n\n## `{fingerprint}`\n\nЕсли значения совпадают, подтвердите привязку."
       }
     },
     "error": {
       "invalid_public_url": "Укажите полный публичный адрес с http:// или https://, без параметров запроса и фрагмента.",
-      "public_url_required": "Публичный адрес Home Assistant необходим для привязки Relay.",
+      "public_url_required": "Публичный адрес Home Assistant необходим для исходящей привязки.",
       "invalid_gateway_url": "Укажите полный адрес Gateway с http:// или https://, без параметров запроса.",
       "gateway_url_required": "Для прямого режима необходимо указать адрес Gateway.",
-      "relay_not_connected": "Relay ещё не предъявил этот код. Введите код на Relay и повторите проверку."
+      "relay_not_connected": "Выбранное устройство ещё не предъявило код. Введите его на устройстве и повторите проверку."
     },
     "abort": {
       "pairing_expired": "Время действия кода истекло. Запустите привязку заново."
@@ -49,26 +51,28 @@
         "data": {
           "public_base_url": "Публичный адрес Home Assistant",
           "stale_after_seconds": "Считать недоступным через (секунд)",
-          "start_pairing": "Создать код для привязки или перепривязки Relay",
+          "start_pairing": "Создать код для привязки или перепривязки устройства",
+          "pairing_device": "Устройство для привязки",
           "connection_mode": "Способ подключения",
           "gateway_url": "Адрес X50 Gateway",
           "gateway_token": "Токен Gateway",
           "gateway_poll_seconds": "Интервал опроса Gateway (секунд)"
         },
         "data_description": {
-          "public_base_url": "Доступный Relay адрес Home Assistant.",
-          "start_pairing": "После подтверждения старый Bearer-токен будет заменён автоматически.",
+          "public_base_url": "Доступный Relay или Gateway адрес Home Assistant.",
+          "start_pairing": "После подтверждения заменяется токен только выбранного устройства.",
+          "pairing_device": "Relay и Gateway используют независимые учётные данные.",
           "connection_mode": "Режим можно менять после установки без удаления интеграции.",
-          "gateway_url": "Нужен для gateway и резервного канала auto."
+          "gateway_url": "Нужен только для локального режима gateway_poll."
         }
       },
       "pair": {
-        "title": "Привязка X50 Relay",
-        "description": "В Relay откройте «Подключить к Home Assistant». Адрес HA: `{public_base_url}`\n\nОдноразовый код:\n\n## `{pairing_code}`\n\nКод действует {expires_minutes} минут. После ввода кода нажмите «Проверить»."
+        "title": "Привязка устройства X50",
+        "description": "Введите этот код в выбранном Relay или Gateway. Адрес HA: `{public_base_url}`\n\nОдноразовый код:\n\n## `{pairing_code}`\n\nКод действует {expires_minutes} минут. Затем нажмите «Проверить»."
       },
       "pair_confirm": {
-        "title": "Подтверждение Relay",
-        "description": "Найдено устройство **{device_name}**, версия `{relay_version}`.\n\nСверьте отпечаток на Relay:\n\n## `{fingerprint}`\n\nПодтверждение заменит старый токен подключения."
+        "title": "Подтверждение устройства X50",
+        "description": "Найдено устройство **{device_name}**, версия `{relay_version}`.\n\nСверьте отпечаток на устройстве:\n\n## `{fingerprint}`\n\nПодтверждение заменит токен только этого устройства."
       }
     },
     "error": {

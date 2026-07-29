@@ -56,6 +56,28 @@ class NormalizeTest(unittest.TestCase):
         self.assertEqual("m-1", message.message_id)
         self.assertEqual("relay-1", message.device_id)
 
+    def test_gateway_push_does_not_report_absent_relay_online(self) -> None:
+        message = models.normalize_message(
+            {
+                "schema": "x50.telemetry.v2",
+                "message_id": "gateway-1",
+                "installation_id": "car-main",
+                "device_id": "gateway-1",
+                "device_kind": "gateway",
+                "sample_time_ms": 1780000000000,
+                "payload": {
+                    "gateway": {"version": "2.25.0-ha-direct-push"},
+                    "vehicle_state": {"speed_kmh": 42.0},
+                },
+            },
+            "car-main",
+            received_time_ms=1780000000100,
+        )
+        summary = models.compact_summary(message.compact)
+        self.assertTrue(summary["gateway_online"])
+        self.assertFalse(summary["relay_online"])
+        self.assertEqual(42.0, summary["speed_kmh"])
+
     def test_route_is_removed_from_entity_payload(self) -> None:
         route = {"exact_route_id": "route-1", "exact_points": [[55.7, 37.5], [55.8, 37.6]]}
         transport = {

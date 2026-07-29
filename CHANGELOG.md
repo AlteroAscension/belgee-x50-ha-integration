@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.0
+
+- corrected Gateway remote transport to outbound Gateway-to-HA push;
+- added independent Relay and Gateway webhook Bearer tokens;
+- bound one-time pairing codes to the selected device type;
+- added `gateway_push` and redefined Auto as Relay/Gateway push arbitration;
+- retained direct polling as the explicit `gateway_poll` diagnostic mode;
+- kept MapKit route snapshots on both push and local diagnostic paths.
+
 ## 0.3.0
 
 - added switchable `relay`, `gateway` and `auto` connection modes;

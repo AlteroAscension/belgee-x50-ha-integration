@@ -7,11 +7,13 @@ PLATFORMS = ("sensor", "binary_sensor", "device_tracker")
 
 CONF_INSTALLATION_ID = "installation_id"
 CONF_ACCESS_TOKEN = "access_token"
+CONF_GATEWAY_ACCESS_TOKEN = "gateway_access_token"
 CONF_WEBHOOK_ID = "webhook_id"
 CONF_NAME = "name"
 CONF_STALE_AFTER = "stale_after_seconds"
 CONF_PUBLIC_BASE_URL = "public_base_url"
 CONF_START_PAIRING = "start_pairing"
+CONF_PAIRING_DEVICE = "pairing_device"
 CONF_CONNECTION_MODE = "connection_mode"
 CONF_GATEWAY_URL = "gateway_url"
 CONF_GATEWAY_TOKEN = "gateway_token"
@@ -19,8 +21,20 @@ CONF_GATEWAY_POLL_SECONDS = "gateway_poll_seconds"
 
 CONNECTION_RELAY = "relay"
 CONNECTION_GATEWAY = "gateway"
+CONNECTION_GATEWAY_PUSH = "gateway_push"
+CONNECTION_GATEWAY_POLL = "gateway_poll"
 CONNECTION_AUTO = "auto"
-CONNECTION_MODES = (CONNECTION_RELAY, CONNECTION_GATEWAY, CONNECTION_AUTO)
+CONNECTION_MODES = (
+    CONNECTION_RELAY,
+    CONNECTION_GATEWAY_PUSH,
+    CONNECTION_AUTO,
+    CONNECTION_GATEWAY_POLL,
+    CONNECTION_GATEWAY,
+)
+
+PAIRING_DEVICE_RELAY = "relay"
+PAIRING_DEVICE_GATEWAY = "gateway"
+PAIRING_DEVICES = (PAIRING_DEVICE_RELAY, PAIRING_DEVICE_GATEWAY)
 
 DEFAULT_NAME = "Belgee X50"
 DEFAULT_STALE_AFTER = 120
@@ -41,4 +55,4 @@ PAIRING_CLAIM_PATH = "/api/belgee_x50/pairing/claim"
 PAIRING_STATUS_PATH = "/api/belgee_x50/pairing/status"
 PAIRING_TTL_SECONDS = 300
 
-ATTRIBUTION = "Data supplied by X50 Relay"
+ATTRIBUTION = "Data supplied by Belgee X50 devices"

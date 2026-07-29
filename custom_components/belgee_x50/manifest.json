@@ -7,9 +7,9 @@
   "config_flow": true,
   "documentation": "https://github.com/AlteroAscension/belgee-x50-ha-integration",
   "integration_type": "hub",
-  "iot_class": "local_polling",
+  "iot_class": "local_push",
   "issue_tracker": "https://github.com/AlteroAscension/belgee-x50-ha-integration/issues",
   "requirements": [],
   "single_config_entry": true,
-  "version": "0.3.0"
+  "version": "0.4.0"
 }

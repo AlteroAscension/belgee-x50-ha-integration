@@ -2,7 +2,7 @@
 
 Home Assistant integration for Belgee X50 / Geely Coolray.
 
-Version `0.3.0` is an installable read-only preview:
+Version `0.4.0` is an installable read-only preview:
 
 - guided setup in the Home Assistant UI;
 - a private Relay webhook protected by a generated Bearer token;
@@ -15,21 +15,22 @@ Version `0.3.0` is an installable read-only preview:
   automatic webhook/Bearer-token delivery;
 - a compact event contract for
   [Belgee X50 Control Center](https://github.com/AlteroAscension/belgee-x50-control-center).
-- three switchable connection modes: protected Relay push, direct Gateway
-  polling, and Auto (fresh Relay first, Gateway fallback);
+- independent protected Relay and Gateway outbound push channels, Auto
+  arbitration, and a separate local polling diagnostic mode;
 - topology changes through **Configure**, without deleting the integration.
 
 ## Connection modes
 
 - `relay`: provide a public HA URL and complete short-code pairing on Relay.
-- `gateway`: provide a Gateway URL reachable from HA over LAN or VPN. Relay
-  and a public HA URL are not required. MapKit geometry is fetched only when
-  the compact route revision changes.
-- `auto`: configure both. Fresh Relay push wins; HA polls Gateway when Relay
-  exceeds the availability timeout.
+- `gateway_push`: provide a public HA URL and pair Gateway. Gateway connects
+  outward, so HA needs no VPN route or incoming head-unit address.
+- `auto`: pair both independently. Fresh Relay push wins; outbound Gateway
+  push takes over when Relay exceeds the availability timeout.
+- `gateway_poll`: optional local/AVD diagnostics using a directly reachable
+  Gateway URL.
 
 The mode can be changed later through **Configure**. Pairing can be started
-there when Relay is added after an initial direct-Gateway installation.
+there for either device. Relay and Gateway tokens are independent.
 
 The current production components remain in
 [X50 Telemetry](https://github.com/AlteroAscension/X50_telemetry), and the
@@ -43,16 +44,13 @@ package. Command ownership and entity migration are later milestones.
 Copy `custom_components/belgee_x50` into Home Assistant's
 `/config/custom_components/`, restart Home Assistant and add **Belgee X50**
 from **Settings → Devices & services**. The flow displays a short-lived
-eight-character code. Enter it in X50 Relay, compare the fingerprint shown on
-both sides and confirm in Home Assistant. Relay then receives the private
-telemetry URL and Bearer token automatically. The setup form requires the
-public Home Assistant base URL explicitly; it never silently substitutes an
-internal `192.168.x.x` address for a remotely connected Relay.
+eight-character code. Enter it in the selected Relay or Gateway, compare the
+fingerprint shown on both sides and confirm in Home Assistant. The device then
+receives its private telemetry URL and its own Bearer token automatically.
 
 An existing entry can be paired or re-paired from **Configure** by selecting
-`Create a code to pair or re-pair Relay`. Re-pairing rotates only the telemetry
-Bearer token and deliberately preserves the legacy command URL/token during
-the migration period.
+`Create a code to pair or re-pair a device`, then selecting Relay or Gateway.
+Re-pairing rotates only the selected device token.
 
 For HACS installs, add this repository as a custom integration repository and
 select the latest published semantic-version release.
@@ -82,7 +80,7 @@ will be published only after they become stable public contracts.
 
 ## Status
 
-Read-only preview `0.3.0`: modular transport implementation and protocol tests
+Read-only preview `0.4.0`: independent outbound transport implementation and protocol tests
 are present.
 Runtime validation on a disposable Home Assistant installation is required
 before publishing the first tagged release.

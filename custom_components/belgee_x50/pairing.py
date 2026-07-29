@@ -32,6 +32,7 @@ class PairingSession:
     claimed_device_name: str | None = None
     claimed_relay_version: str | None = None
     claimed_nonce: str | None = None
+    claimed_source_kind: str | None = None
     claim_id: str | None = None
     claim_secret: str | None = None
     fingerprint: str | None = None
@@ -92,6 +93,7 @@ class PairingManager:
         device_name: str,
         relay_version: str,
         request_nonce: str,
+        source_kind: str = "relay",
     ) -> dict[str, Any]:
         self.cleanup()
         normalized = self.normalize_code(code)
@@ -103,6 +105,10 @@ class PairingManager:
             raise PairingError("invalid_device")
         if len(request_nonce) < 16 or len(request_nonce) > 128:
             raise PairingError("invalid_nonce")
+        expected_source = str(session.credentials.get("source_kind", "relay"))
+        if source_kind not in ("relay", "gateway") \
+                or source_kind != expected_source:
+            raise PairingError("wrong_device_type")
 
         if session.claimed:
             if (
@@ -110,6 +116,7 @@ class PairingManager:
                 or not secrets.compare_digest(
                     session.claimed_nonce or "", request_nonce
                 )
+                or session.claimed_source_kind != source_kind
             ):
                 raise PairingError("already_claimed")
         else:
@@ -117,6 +124,7 @@ class PairingManager:
             session.claimed_device_name = (device_name or "X50 Relay")[:80]
             session.claimed_relay_version = (relay_version or "unknown")[:40]
             session.claimed_nonce = request_nonce
+            session.claimed_source_kind = source_kind
             session.claim_id = secrets.token_urlsafe(18)
             session.claim_secret = secrets.token_urlsafe(32)
             digest = hashlib.sha256(

@@ -11,6 +11,7 @@ from homeassistant.helpers.redact import async_redact_data
 from .const import (
     CONF_ACCESS_TOKEN,
     CONF_GATEWAY_TOKEN,
+    CONF_GATEWAY_ACCESS_TOKEN,
     CONF_WEBHOOK_ID,
     DATA_COORDINATOR,
     DOMAIN,
@@ -19,6 +20,7 @@ from .const import (
 REDACT = {
     CONF_ACCESS_TOKEN,
     CONF_GATEWAY_TOKEN,
+    CONF_GATEWAY_ACCESS_TOKEN,
     CONF_WEBHOOK_ID,
     "latitude",
     "longitude",

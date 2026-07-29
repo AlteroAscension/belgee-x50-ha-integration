@@ -18,6 +18,8 @@ from .const import (
     CONF_GATEWAY_URL,
     CONNECTION_AUTO,
     CONNECTION_GATEWAY,
+    CONNECTION_GATEWAY_POLL,
+    CONNECTION_GATEWAY_PUSH,
     CONNECTION_RELAY,
     DEFAULT_GATEWAY_POLL_SECONDS,
     DOMAIN,
@@ -61,7 +63,10 @@ class X50Coordinator(DataUpdateCoordinator[dict[str, Any]]):
             update_interval=timedelta(
                 seconds=(
                     poll_seconds
-                    if self.connection_mode in (CONNECTION_GATEWAY, CONNECTION_AUTO)
+                    if self.connection_mode in (
+                        CONNECTION_GATEWAY,
+                        CONNECTION_GATEWAY_POLL,
+                    )
                     else min(30, max(10, stale_after // 3))
                 )
             ),
@@ -76,10 +81,15 @@ class X50Coordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.async_set_updated_data({"summary": {}, "raw": {}})
 
     async def _async_update_data(self) -> dict[str, Any]:
-        if self.connection_mode == CONNECTION_GATEWAY:
+        if self.connection_mode in (CONNECTION_GATEWAY, CONNECTION_GATEWAY_POLL):
             await self._async_fetch_gateway()
-        elif self.connection_mode == CONNECTION_AUTO and not self._relay_is_fresh():
-            await self._async_fetch_gateway()
+        elif self.connection_mode == CONNECTION_AUTO:
+            if self._relay_is_fresh():
+                if self.active_transport != "relay" and self.last_relay_message:
+                    self._apply(self.last_relay_message, "relay")
+            elif self._gateway_is_fresh() and self.last_gateway_message:
+                if self.active_transport != "gateway":
+                    self._apply(self.last_gateway_message, "gateway")
         return self.data
 
     async def _async_fetch_gateway(self) -> None:
@@ -142,12 +152,25 @@ class X50Coordinator(DataUpdateCoordinator[dict[str, Any]]):
             },
         )
 
-    def async_ingest(self, message: NormalizedMessage) -> bool:
-        """Accept Relay push unless the user selected Gateway-only mode."""
-        self.last_relay_message = message
-        if self.connection_mode == CONNECTION_GATEWAY:
+    def async_ingest(
+        self, message: NormalizedMessage, transport: str = "relay"
+    ) -> bool:
+        """Accept one authenticated push source according to topology."""
+        if transport == "gateway":
+            self.last_gateway_message = message
+        else:
+            self.last_relay_message = message
+        if self.connection_mode in (CONNECTION_GATEWAY, CONNECTION_GATEWAY_POLL):
             return False
-        self._apply(message, "relay")
+        if self.connection_mode == CONNECTION_RELAY and transport != "relay":
+            return False
+        if self.connection_mode == CONNECTION_GATEWAY_PUSH \
+                and transport != "gateway":
+            return False
+        if self.connection_mode == CONNECTION_AUTO \
+                and transport == "gateway" and self._relay_is_fresh():
+            return True
+        self._apply(message, transport)
         return True
 
     def _apply(self, message: NormalizedMessage, transport: str) -> None:
@@ -164,6 +187,12 @@ class X50Coordinator(DataUpdateCoordinator[dict[str, Any]]):
         if self.last_relay_message is None:
             return False
         age = time.time() - self.last_relay_message.received_time_ms / 1000
+        return age <= self.stale_after
+
+    def _gateway_is_fresh(self) -> bool:
+        if self.last_gateway_message is None:
+            return False
+        age = time.time() - self.last_gateway_message.received_time_ms / 1000
         return age <= self.stale_after
 
     @property

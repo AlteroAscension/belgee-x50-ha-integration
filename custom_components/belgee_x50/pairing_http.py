@@ -44,6 +44,7 @@ class X50PairingClaimView(HomeAssistantView):
                 device_name=str(payload.get("device_name", "X50 Relay")),
                 relay_version=str(payload.get("relay_version", "unknown")),
                 request_nonce=str(payload.get("request_nonce", "")),
+                source_kind=str(payload.get("source_kind", "relay")),
             )
         except PairingError as error:
             status = 409 if error.reason == "already_claimed" else 400

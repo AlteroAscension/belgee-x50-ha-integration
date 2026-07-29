@@ -232,13 +232,17 @@ def compact_summary(data: dict[str, Any]) -> dict[str, Any]:
         ),
         "gateway_version": _first(data, ("gateway.version",)),
         "gateway_online": boolean(
-            _first(data, ("gateway.online", "gateway.status")), True
+            _first(data, ("gateway.online", "gateway.status")),
+            isinstance(data.get("gateway"), dict),
         ),
         "controls_enabled": boolean(
             _first(data, ("gateway.controls_enabled",)), False
         ),
         "relay_version": _first(data, ("relay.version",)),
-        "relay_online": boolean(_first(data, ("relay.online",)), True),
+        "relay_online": boolean(
+            _first(data, ("relay.online",)),
+            isinstance(data.get("relay"), dict),
+        ),
         "fake_gps_enabled": boolean(
             _first(data, ("navigation.enabled", "gateway.fake_nav.enabled")), False
         ),

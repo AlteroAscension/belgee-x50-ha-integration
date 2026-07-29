@@ -4,12 +4,13 @@
     "step": {
       "user": {
         "title": "Connect Belgee X50",
-        "description": "Prepare a protected X50 Relay connection to Home Assistant.",
+        "description": "Choose how X50 Relay and Gateway send data to Home Assistant.",
         "data": {
           "name": "Vehicle name",
           "installation_id": "Stable installation ID",
           "public_base_url": "Public Home Assistant URL",
           "connection_mode": "Connection mode",
+          "pairing_device": "Device to pair first",
           "gateway_url": "X50 Gateway URL",
           "gateway_token": "Gateway token (optional for reads)",
           "gateway_poll_seconds": "Gateway polling interval (seconds)"
@@ -17,26 +18,27 @@
         "data_description": {
           "installation_id": "Do not use an IP address. This ID separates the real head unit from AVD installations.",
           "public_base_url": "Externally reachable base URL, for example https://ha.example.com. A local 192.168.x.x address will not work outside your home network.",
-          "connection_mode": "relay accepts Relay push; gateway polls Gateway directly; auto prefers Relay and falls back to Gateway.",
-          "gateway_url": "An address reachable from HA, for example http://gateway-vpn-address:8080. It can be empty in relay mode.",
+          "connection_mode": "relay accepts Relay push; gateway_push accepts outbound Gateway push; auto accepts both and prefers fresh Relay; gateway_poll is local diagnostics.",
+          "pairing_device": "Relay and Gateway receive separate tokens. In Auto, choose which one to pair first.",
+          "gateway_url": "Used only for local gateway_poll diagnostics. Normal Gateway push needs no VPN or incoming address.",
           "gateway_token": "Stored for future protected operations. Current direct Gateway telemetry is read-only."
         }
       },
       "pair": {
-        "title": "Pair X50 Relay",
-        "description": "Open “Connect to Home Assistant” in Relay. HA address: `{public_base_url}`\n\nOne-time code:\n\n## `{pairing_code}`\n\nThe code is valid for {expires_minutes} minutes. After entering it in Relay, select Check."
+        "title": "Pair X50 device",
+        "description": "Enter this code in the selected Relay or Gateway. HA address: `{public_base_url}`\n\nOne-time code:\n\n## `{pairing_code}`\n\nThe code is valid for {expires_minutes} minutes. Then select Check."
       },
       "pair_confirm": {
-        "title": "Confirm Relay",
-        "description": "Found **{device_name}**, version `{relay_version}`.\n\nCompare the fingerprint shown in Relay:\n\n## `{fingerprint}`\n\nConfirm only when both values match."
+        "title": "Confirm X50 device",
+        "description": "Found **{device_name}**, version `{relay_version}`.\n\nCompare the fingerprint shown on the device:\n\n## `{fingerprint}`\n\nConfirm only when both values match."
       }
     },
     "error": {
       "invalid_public_url": "Enter a complete public URL starting with http:// or https://, without a query or fragment.",
-      "public_url_required": "A public Home Assistant URL is required to pair Relay.",
+      "public_url_required": "A public Home Assistant URL is required for outbound pairing.",
       "invalid_gateway_url": "Enter a complete Gateway URL starting with http:// or https://, without a query or fragment.",
       "gateway_url_required": "Gateway URL is required for direct mode.",
-      "relay_not_connected": "Relay has not claimed this code yet. Enter it in Relay and check again."
+      "relay_not_connected": "The selected device has not claimed this code yet. Enter it on the device and check again."
     },
     "abort": {
       "pairing_expired": "The pairing code expired. Start pairing again."
@@ -49,26 +51,28 @@
         "data": {
           "public_base_url": "Public Home Assistant URL",
           "stale_after_seconds": "Mark unavailable after (seconds)",
-          "start_pairing": "Create a code to pair or re-pair Relay",
+          "start_pairing": "Create a code to pair or re-pair a device",
+          "pairing_device": "Device to pair",
           "connection_mode": "Connection mode",
           "gateway_url": "X50 Gateway URL",
           "gateway_token": "Gateway token",
           "gateway_poll_seconds": "Gateway polling interval (seconds)"
         },
         "data_description": {
-          "public_base_url": "The Home Assistant address reachable by Relay.",
-          "start_pairing": "The existing Bearer token is replaced automatically after confirmation.",
+          "public_base_url": "The Home Assistant address reachable by Relay or Gateway.",
+          "start_pairing": "Only the selected device token is replaced after confirmation.",
+          "pairing_device": "Relay and Gateway use independent credentials.",
           "connection_mode": "The mode can be changed after installation without removing the integration.",
-          "gateway_url": "Required by gateway mode and the auto fallback."
+          "gateway_url": "Required only by local gateway_poll diagnostics."
         }
       },
       "pair": {
-        "title": "Pair X50 Relay",
-        "description": "Open “Connect to Home Assistant” in Relay. HA address: `{public_base_url}`\n\nOne-time code:\n\n## `{pairing_code}`\n\nThe code is valid for {expires_minutes} minutes. After entering it in Relay, select Check."
+        "title": "Pair X50 device",
+        "description": "Enter this code in the selected Relay or Gateway. HA address: `{public_base_url}`\n\nOne-time code:\n\n## `{pairing_code}`\n\nThe code is valid for {expires_minutes} minutes. Then select Check."
       },
       "pair_confirm": {
-        "title": "Confirm Relay",
-        "description": "Found **{device_name}**, version `{relay_version}`.\n\nCompare the fingerprint shown in Relay:\n\n## `{fingerprint}`\n\nConfirmation replaces the old connection token."
+        "title": "Confirm X50 device",
+        "description": "Found **{device_name}**, version `{relay_version}`.\n\nCompare the fingerprint shown on the device:\n\n## `{fingerprint}`\n\nConfirmation replaces only this device token."
       }
     },
     "error": {

@@ -10,8 +10,9 @@ Belgee X50 HA Integration will be the Home Assistant-native owner of:
 - the supported interface to Belgee X50 Control Center.
 
 ```text
-X50 Relay
-    ↓
+X50 Relay ─── outbound authenticated push ──┐
+                                            ├─
+X50 Gateway ─ outbound authenticated push ──┘
 Belgee X50 HA Integration
     ├─ Home Assistant devices and entities
     ├─ automation actions
@@ -35,15 +36,15 @@ public pre-release architecture.
 The config entry owns a runtime-selectable transport:
 
 - `relay` accepts only authenticated webhook updates;
-- `gateway` polls a directly reachable Gateway and acknowledges but ignores
-  Relay pushes;
-- `auto` uses Relay while its last message is fresh and polls Gateway as a
-  fallback.
+- `gateway_push` accepts only Gateway's outbound authenticated updates;
+- `auto` accepts both device tokens, prefers Relay while it is fresh, and
+  falls back to the latest Gateway push;
+- `gateway_poll` retains explicitly selected local/AVD diagnostics.
 
 Changing transport reloads the config entry; it does not require reinstalling
 the integration. Relay may therefore be paired after an initial Gateway-only
-deployment. Gateway access is expected over a trusted LAN or VPN. Current
-direct polling is read-only.
+deployment. Normal Gateway push needs no HA-to-Gateway route. Relay and Gateway
+have separate tokens, allowing either one to be rotated or removed safely.
 
 ## Implemented preview boundary
 
