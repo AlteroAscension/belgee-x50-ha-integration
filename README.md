@@ -2,6 +2,8 @@
 
 Home Assistant integration for Belgee X50 / Geely Coolray.
 
+Open source under the [MIT License](LICENSE).
+
 Version `0.4.0` is an installable read-only preview:
 
 - guided setup in the Home Assistant UI;
