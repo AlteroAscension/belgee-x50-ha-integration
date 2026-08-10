@@ -106,7 +106,10 @@ class X50ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 CONNECTION_AUTO,
             ) and not public_base_url:
                 errors[CONF_PUBLIC_BASE_URL] = "public_url_required"
-            gateway_value = str(user_input.get(CONF_GATEWAY_URL, "")).strip()
+            # HA can submit an omitted optional field as None.  Treat it as
+            # empty: a direct Gateway URL is intentionally optional for
+            # relay, gateway_push and auto transports.
+            gateway_value = str(user_input.get(CONF_GATEWAY_URL) or "").strip()
             gateway_url = ""
             if gateway_value:
                 try:
@@ -316,7 +319,9 @@ class X50OptionsFlow(OptionsFlowWithReload):
                          CONNECTION_AUTO) or start_pairing_requested) \
                     and not public_base_url:
                 errors[CONF_PUBLIC_BASE_URL] = "public_url_required"
-            gateway_value = str(user_input.get(CONF_GATEWAY_URL, "")).strip()
+            # See the initial setup flow: None is an empty optional field,
+            # not a literal URL named "None".
+            gateway_value = str(user_input.get(CONF_GATEWAY_URL) or "").strip()
             gateway_url = ""
             if gateway_value:
                 try:
