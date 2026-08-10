@@ -46,6 +46,7 @@ from .const import (
 )
 from .gateway import normalize_gateway_url
 from .pairing import PairingError, PairingManager, PairingSession
+from .runtime import ensure_pairing_runtime
 from .urls import normalize_public_base_url
 
 
@@ -60,7 +61,7 @@ class X50ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     @property
     def _pairing_manager(self) -> PairingManager:
-        return self.hass.data[DOMAIN][DATA_PAIRING_MANAGER]
+        return ensure_pairing_runtime(self.hass)
 
     def _open_pairing(self) -> PairingSession:
         base_url = self._pending[CONF_PUBLIC_BASE_URL]
@@ -295,7 +296,7 @@ class X50OptionsFlow(OptionsFlowWithReload):
 
     @property
     def _pairing_manager(self) -> PairingManager:
-        return self.hass.data[DOMAIN][DATA_PAIRING_MANAGER]
+        return ensure_pairing_runtime(self.hass)
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None

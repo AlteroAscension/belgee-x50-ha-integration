@@ -4,7 +4,7 @@ Home Assistant integration for Belgee X50 / Geely Coolray.
 
 Open source under the [MIT License](LICENSE).
 
-Version `0.4.1` is an installable read-only preview:
+Version `0.4.2` is an installable read-only preview:
 
 - guided setup in the Home Assistant UI;
 - a private Relay webhook protected by a generated Bearer token;
@@ -82,7 +82,7 @@ will be published only after they become stable public contracts.
 
 ## Status
 
-Read-only preview `0.4.1`: independent outbound transport implementation and protocol tests
+Read-only preview `0.4.2`: independent outbound transport implementation and protocol tests
 are present.
 Runtime validation on a disposable Home Assistant installation is required
 before publishing the first tagged release.

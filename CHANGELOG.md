@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.2
+
+- fixed first-run pairing: the pairing manager and its endpoints are now
+  initialized before Config Flow creates the first code;
+- retained optional blank Gateway URL in outgoing push modes.
+
 ## 0.4.0
 
 - corrected Gateway remote transport to outbound Gateway-to-HA push;

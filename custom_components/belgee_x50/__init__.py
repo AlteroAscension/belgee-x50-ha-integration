@@ -19,7 +19,6 @@ from .const import (
     CONF_STALE_AFTER,
     CONF_WEBHOOK_ID,
     DATA_COORDINATOR,
-    DATA_PAIRING_MANAGER,
     DATA_WEBHOOK_URL,
     DEFAULT_STALE_AFTER,
     DOMAIN,
@@ -28,19 +27,14 @@ from .const import (
 )
 from .coordinator import X50Coordinator
 from .models import normalize_message
-from .pairing import PairingManager
-from .pairing_http import X50PairingClaimView, X50PairingStatusView
+from .runtime import ensure_pairing_runtime
 
 PLATFORM_TYPES = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.DEVICE_TRACKER]
 
 
 async def async_setup(hass: HomeAssistant, config: dict[str, Any]) -> bool:
     """Register the global short-lived pairing endpoints once."""
-    domain_data = hass.data.setdefault(DOMAIN, {})
-    if DATA_PAIRING_MANAGER not in domain_data:
-        domain_data[DATA_PAIRING_MANAGER] = PairingManager()
-        hass.http.register_view(X50PairingClaimView)
-        hass.http.register_view(X50PairingStatusView)
+    ensure_pairing_runtime(hass)
     return True
 
 
