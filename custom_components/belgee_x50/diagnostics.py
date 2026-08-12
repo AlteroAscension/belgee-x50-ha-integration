@@ -50,4 +50,6 @@ async def async_get_config_entry_diagnostics(
         "connection_mode": coordinator.connection_mode,
         "active_transport": coordinator.active_transport,
         "last_transport_error": coordinator.last_transport_error,
+        "research_samples_received": coordinator.research_samples_received,
+        "latest_research_diagnostics": coordinator.last_research_diagnostics,
     }

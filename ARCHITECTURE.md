@@ -28,6 +28,18 @@ automations.
 MapKit capture and FakeGPS remain responsibilities of X50 Navigation. Vehicle
 telemetry remains a responsibility of Gateway and Relay.
 
+## Opt-in vehicle-property research
+
+Gateway can optionally attach `x50.vendor-research.v1` to its existing
+outbound authenticated webhook. This is disabled by default in Gateway and
+never needs an inbound route, ADB or a VPN address for the head unit. One
+packet per minute contains a read-only vendor-property baseline snapshot plus
+the last 100 passive property callbacks. The integration validates strict
+limits, removes the heavy packet from normal telemetry state, fires
+`belgee_x50_research_diagnostics`, and exposes the latest packet only through
+Home Assistant's diagnostics download. The future Control Center may subscribe
+to that event to persist and compare experiments.
+
 Security-sensitive implementation details are intentionally excluded from the
 public pre-release architecture.
 

@@ -95,6 +95,26 @@ def _decode_route_transport(transport: Any) -> dict[str, Any] | None:
     }
 
 
+def _decode_research_transport(transport: Any) -> dict[str, Any] | None:
+    """Validate optional read-only vendor-property diagnostics from Gateway."""
+    if not isinstance(transport, dict):
+        return None
+    if transport.get("schema") != "x50.vendor-research.v1":
+        return None
+    snapshot = transport.get("snapshot")
+    events = transport.get("events")
+    if not isinstance(snapshot, dict) or not isinstance(events, dict):
+        return None
+    properties = snapshot.get("properties")
+    event_list = events.get("events")
+    # A Gateway packet must stay bounded even if a malformed peer is paired.
+    if not isinstance(properties, list) or len(properties) > 700:
+        return None
+    if not isinstance(event_list, list) or len(event_list) > 100:
+        return None
+    return deepcopy(transport)
+
+
 @dataclass(slots=True)
 class NormalizedMessage:
     """Compact state plus an optional heavy immutable route snapshot."""
@@ -108,6 +128,7 @@ class NormalizedMessage:
     received_time_ms: int
     compact: dict[str, Any]
     route_snapshot: dict[str, Any] | None
+    research_diagnostics: dict[str, Any] | None
 
 
 def normalize_message(
@@ -153,12 +174,14 @@ def normalize_message(
     relay = compact.get("relay")
     route_transport_navigation = None
     route_transport_relay = None
+    research_transport = compact.pop("research_transport", None)
     if isinstance(navigation, dict):
         route_transport_navigation = navigation.pop("route_transport", None)
     if isinstance(relay, dict):
         route_transport_relay = relay.pop("route_transport", None)
     route_transport = route_transport_navigation or route_transport_relay
     route_snapshot = _decode_route_transport(route_transport)
+    research_diagnostics = _decode_research_transport(research_transport)
 
     compact["_x50"] = {
         "schema": schema,
@@ -179,6 +202,7 @@ def normalize_message(
         received_time_ms=received,
         compact=compact,
         route_snapshot=route_snapshot,
+        research_diagnostics=research_diagnostics,
     )
 
 

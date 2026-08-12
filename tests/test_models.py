@@ -96,6 +96,22 @@ class NormalizeTest(unittest.TestCase):
         self.assertEqual("route-1:1", message.route_snapshot["snapshot_id"])
         self.assertEqual(route, message.route_snapshot["route"])
 
+    def test_research_is_removed_from_entity_payload(self) -> None:
+        self.fixture["research_transport"] = {
+            "schema": "x50.vendor-research.v1",
+            "snapshot": {
+                "ok": True,
+                "properties": [{"id": 678429191, "raw_hex": "4B"}],
+            },
+            "events": {"events": [{"property_id": 678429191, "value": 75}]},
+        }
+        message = models.normalize_message(self.fixture, "car-main")
+        self.assertNotIn("research_transport", message.compact)
+        self.assertEqual(
+            678429191,
+            message.research_diagnostics["snapshot"]["properties"][0]["id"],
+        )
+
     def test_unknown_major_schema_is_rejected(self) -> None:
         with self.assertRaises(ValueError):
             models.normalize_message(

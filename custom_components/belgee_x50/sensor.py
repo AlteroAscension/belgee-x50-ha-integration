@@ -69,6 +69,10 @@ DESCRIPTIONS = (
         key="active_transport", name="Active transport", device_kind="gateway",
         diagnostic=True
     ),
+    X50SensorDescription(
+        key="research_samples_received", name="Research diagnostics received",
+        device_kind="gateway", diagnostic=True
+    ),
 )
 
 

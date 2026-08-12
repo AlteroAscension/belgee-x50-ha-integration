@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.0
+
+- accepts the opt-in, read-only Gateway vendor-property research transport;
+- keeps research payloads out of ordinary entity state;
+- fires `belgee_x50_research_diagnostics` and includes the latest packet in
+  the Home Assistant diagnostics download;
+- adds the `Research diagnostics received` diagnostic sensor.
+
 ## 0.4.2
 
 - fixed first-run pairing: the pairing manager and its endpoints are now

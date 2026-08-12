@@ -24,6 +24,7 @@ from .const import (
     DEFAULT_GATEWAY_POLL_SECONDS,
     DOMAIN,
     EVENT_ROUTE_SNAPSHOT,
+    EVENT_RESEARCH_DIAGNOSTICS,
 )
 from .gateway import (
     gateway_headers,
@@ -78,6 +79,8 @@ class X50Coordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.active_transport = "none"
         self.last_transport_error: str | None = None
         self.last_gateway_route_revision = ""
+        self.last_research_diagnostics: dict[str, Any] | None = None
+        self.research_samples_received = 0
         self.async_set_updated_data({"summary": {}, "raw": {}})
 
     async def _async_update_data(self) -> dict[str, Any]:
@@ -158,6 +161,20 @@ class X50Coordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Accept one authenticated push source according to topology."""
         if transport == "gateway":
             self.last_gateway_message = message
+            if message.research_diagnostics is not None:
+                self.last_research_diagnostics = message.research_diagnostics
+                self.research_samples_received += 1
+                self.hass.bus.async_fire(
+                    EVENT_RESEARCH_DIAGNOSTICS,
+                    {
+                        "entry_id": self.entry.entry_id,
+                        "installation_id": self.installation_id,
+                        "device_kind": "gateway",
+                        "sample_time_ms": message.sample_time_ms,
+                        "sample_number": self.research_samples_received,
+                        "diagnostics": message.research_diagnostics,
+                    },
+                )
         else:
             self.last_relay_message = message
         if self.connection_mode in (CONNECTION_GATEWAY, CONNECTION_GATEWAY_POLL):
@@ -179,8 +196,13 @@ class X50Coordinator(DataUpdateCoordinator[dict[str, Any]]):
         summary = compact_summary(message.compact)
         summary["connection_mode"] = self.connection_mode
         summary["active_transport"] = transport
+        summary["research_samples_received"] = self.research_samples_received
         self.async_set_updated_data(
-            {"summary": summary, "raw": message.compact}
+            {
+                "summary": summary,
+                "raw": message.compact,
+                "research": self.last_research_diagnostics,
+            }
         )
 
     def _relay_is_fresh(self) -> bool:
