@@ -56,6 +56,29 @@ An existing entry can be paired or re-paired from **Configure** by selecting
 `Create a code to pair or re-pair a device`, then selecting Relay or Gateway.
 Re-pairing rotates only the selected device token.
 
+## Pairing Gateway and Relay without a type error
+
+In the usual `auto` topology, pair the devices one at a time. A pairing code
+is intentionally bound to one device type, so it cannot be reused for the
+other device.
+
+1. In **Settings → Devices & services → Belgee X50 → Configure**, choose
+   **Create a code to pair or re-pair a device** and select **Relay**.
+2. Enter the displayed eight-character code and the public HA URL in
+   **X50 Relay → Связь → Привязка Home Assistant**, then confirm the same
+   fingerprint in HA.
+3. Return to **Configure**, create a *new* code and select **Gateway**.
+4. Enter that second code and the same public HA URL in
+   **X50 Gateway → Home Assistant**, tap **Привязать Gateway к Home Assistant**,
+   and confirm the Gateway fingerprint in HA.
+
+Do not fill `gateway_url` when the selected connection mode is `relay`,
+`gateway_push` or `auto`: it is only for the local `gateway_poll` diagnostic
+mode. The expected setup has the Gateway and Relay initiate outbound HTTPS
+connections to HA, so neither VPN routing nor an incoming address to the head
+unit is needed. If `wrong_device_type` appears, discard the current code and
+create a new one with the matching device selected.
+
 For HACS installs, add this repository as a custom integration repository and
 select the latest published semantic-version release.
 
