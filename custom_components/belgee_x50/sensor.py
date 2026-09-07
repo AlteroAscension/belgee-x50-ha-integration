@@ -93,6 +93,26 @@ class X50Sensor(X50Entity, SensorEntity):
         return self.coordinator.data.get("summary", {}).get(self.entity_description.key)
 
 
+class X50SimulatorDiagnostics(X50Entity, SensorEntity):
+    """Compatibility channel for the separately maintained X50 Simulation add-on."""
+
+    _attr_name = "Simulator diagnostics"
+    _attr_suggested_object_id = "belgee_x50_trip_diagnostics"
+
+    def __init__(self, coordinator: Any, installation_id: str) -> None:
+        super().__init__(coordinator, installation_id, "simulator_trip_diagnostics")
+        from homeassistant.helpers.entity import EntityCategory
+        self._attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    @property
+    def native_value(self) -> Any:
+        return self.coordinator.data.get("simulator_compat", {}).get("sample_timestamp_ms")
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        return self.coordinator.data.get("simulator_compat", {})
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -100,7 +120,7 @@ async def async_setup_entry(
 ) -> None:
     coordinator = hass.data[DOMAIN][entry.entry_id][DATA_COORDINATOR]
     installation_id = entry.data[CONF_INSTALLATION_ID]
-    async_add_entities(
-        X50Sensor(coordinator, installation_id, description)
-        for description in DESCRIPTIONS
-    )
+    async_add_entities([
+        *(X50Sensor(coordinator, installation_id, description) for description in DESCRIPTIONS),
+        X50SimulatorDiagnostics(coordinator, installation_id),
+    ])

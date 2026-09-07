@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.1
+
+- add a dedicated, read-only simulator compatibility sensor for fresh Relay
+  telemetry, odometer and compressed MapKit route transport;
+- keep normal native entity attributes route-free and leave the legacy YAML
+  package untouched.
+
 ## 0.5.0
 
 - accepts the opt-in, read-only Gateway vendor-property research transport;

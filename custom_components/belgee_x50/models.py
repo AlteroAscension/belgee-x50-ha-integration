@@ -127,6 +127,7 @@ class NormalizedMessage:
     sample_time_ms: int
     received_time_ms: int
     compact: dict[str, Any]
+    route_transport: dict[str, Any] | None
     route_snapshot: dict[str, Any] | None
     research_diagnostics: dict[str, Any] | None
 
@@ -201,9 +202,26 @@ def normalize_message(
         sample_time_ms=sample_time,
         received_time_ms=received,
         compact=compact,
+        route_transport=deepcopy(route_transport) if route_snapshot is not None else None,
         route_snapshot=route_snapshot,
         research_diagnostics=research_diagnostics,
     )
+
+
+def simulator_trip_diagnostics(message: NormalizedMessage) -> dict[str, Any]:
+    """Build the separate legacy-shaped state consumed by X50 Simulation."""
+    navigation = deepcopy(message.compact.get("navigation", {}))
+    if not isinstance(navigation, dict):
+        navigation = {}
+    if message.route_transport is not None:
+        navigation["route_transport"] = deepcopy(message.route_transport)
+    summary = compact_summary(message.compact)
+    return {
+        "sample_timestamp_ms": message.sample_time_ms,
+        "vehicle_speed_kmh": summary.get("speed_kmh"),
+        "odometer_km": summary.get("odometer_km"),
+        "fake_nav": navigation,
+    }
 
 
 def compact_summary(data: dict[str, Any]) -> dict[str, Any]:

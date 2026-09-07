@@ -96,6 +96,21 @@ class NormalizeTest(unittest.TestCase):
         self.assertEqual("route-1:1", message.route_snapshot["snapshot_id"])
         self.assertEqual(route, message.route_snapshot["route"])
 
+    def test_simulator_compatibility_keeps_route_out_of_normal_entities(self) -> None:
+        transport = {
+            "snapshot_id": "route-1:1", "available": True, "codec": "gzip+base64",
+            "payload_b64": base64.b64encode(gzip.compress(json.dumps({
+                "exact_points": [[55.7, 37.5], [55.8, 37.6]],
+            }).encode())).decode(),
+        }
+        self.fixture["navigation"]["route_transport"] = transport
+        message = models.normalize_message(self.fixture, "car-main")
+        compatibility = models.simulator_trip_diagnostics(message)
+        self.assertNotIn("route_transport", message.compact["navigation"])
+        self.assertEqual(54.2, compatibility["vehicle_speed_kmh"])
+        self.assertEqual(26175.4, compatibility["odometer_km"])
+        self.assertEqual(transport, compatibility["fake_nav"]["route_transport"])
+
     def test_research_is_removed_from_entity_payload(self) -> None:
         self.fixture["research_transport"] = {
             "schema": "x50.vendor-research.v1",

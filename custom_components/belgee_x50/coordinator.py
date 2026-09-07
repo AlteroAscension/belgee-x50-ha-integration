@@ -33,7 +33,9 @@ from .gateway import (
     gateway_telemetry_url,
     validate_gateway_payload,
 )
-from .models import NormalizedMessage, compact_summary, normalize_message
+from .models import (
+    NormalizedMessage, compact_summary, normalize_message, simulator_trip_diagnostics,
+)
 
 
 class X50Coordinator(DataUpdateCoordinator[dict[str, Any]]):
@@ -202,6 +204,7 @@ class X50Coordinator(DataUpdateCoordinator[dict[str, Any]]):
                 "summary": summary,
                 "raw": message.compact,
                 "research": self.last_research_diagnostics,
+                "simulator_compat": simulator_trip_diagnostics(message),
             }
         )
 
