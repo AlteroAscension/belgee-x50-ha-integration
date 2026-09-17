@@ -41,18 +41,18 @@ def validate_gateway_payload(value: Any) -> dict[str, Any]:
 
 
 def gateway_route_revision(telemetry: dict[str, Any]) -> str:
-    """Return the compact MapKit identity used to deduplicate heavy reads."""
+    """Return the identity of a complete navigation geometry for deduplication."""
     navigation = telemetry.get("navigation")
     if not isinstance(navigation, dict):
         return "none"
     if not navigation.get("route_available"):
         return "none"
-    if navigation.get("route_source") != "mapkit":
+    if navigation.get("route_source") not in ("mapkit", "2gis"):
         return "none"
     identity = str(
         navigation.get("route_identity")
         or navigation.get("exact_route_id")
-        or "mapkit"
+        or str(navigation.get("route_source") or "navigation")
     )
     return (
         f"{identity}:"

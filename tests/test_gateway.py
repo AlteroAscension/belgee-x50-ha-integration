@@ -50,7 +50,7 @@ class GatewayTransportTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             gateway.validate_gateway_payload([])
 
-    def test_route_revision_uses_mapkit_identity(self) -> None:
+    def test_route_revision_uses_complete_navigation_identity(self) -> None:
         self.assertEqual(
             "route-a:2:7",
             gateway.gateway_route_revision(
@@ -61,6 +61,20 @@ class GatewayTransportTests(unittest.TestCase):
                         "exact_route_id": "route-a",
                         "route_activation_count": 2,
                         "route_generation": 7,
+                    }
+                }
+            ),
+        )
+        self.assertEqual(
+            "2gis-a:4:9",
+            gateway.gateway_route_revision(
+                {
+                    "navigation": {
+                        "route_available": True,
+                        "route_source": "2gis",
+                        "route_identity": "2gis-a",
+                        "route_activation_count": 4,
+                        "route_generation": 9,
                     }
                 }
             ),

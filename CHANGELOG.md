@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Transfer complete 2GIS route snapshots through the existing route channel,
+  alongside MapKit, for the simulator trip journal.
+
 ## 0.5.1
 
 - add a dedicated, read-only simulator compatibility sensor for fresh Relay

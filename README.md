@@ -93,8 +93,8 @@ python -m compileall -q custom_components tests
 
 The integration accepts the existing v1 body during migration. If Relay sends
 an `x50.telemetry.v2` envelope, its installation identity must match the
-configured entry. Unknown protocol majors are rejected. A MapKit
-`route_transport` is removed from both legacy duplicate locations before the
+configured entry. Unknown protocol majors are rejected. A complete MapKit or
+2GIS `route_transport` is removed from both legacy duplicate locations before the
 compact state is exposed to entities.
 
 ## Project documents
