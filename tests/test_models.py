@@ -127,6 +127,31 @@ class NormalizeTest(unittest.TestCase):
             message.research_diagnostics["snapshot"]["properties"][0]["id"],
         )
 
+    def test_trajectory_is_removed_from_entity_payload_and_keeps_segments(self) -> None:
+        trajectory = {
+            "trajectory_id": "traj-1",
+            "point_count": 3,
+            "points": [
+                {"x_m": 0, "y_m": 0, "segment_id": 0},
+                {"x_m": 5, "y_m": 1, "segment_id": 0},
+                {"x_m": 9, "y_m": 4, "segment_id": 1},
+            ],
+        }
+        self.fixture["trajectory_transport"] = {
+            "schema": "x50.virtual-trajectory-transport.v1",
+            "snapshot_id": "traj-1",
+            "complete": True,
+            "published_at_ms": 1780000000000,
+            "codec": "gzip+base64",
+            "payload_b64": base64.b64encode(
+                gzip.compress(json.dumps(trajectory).encode())
+            ).decode(),
+        }
+        message = models.normalize_message(self.fixture, "car-main")
+        self.assertNotIn("trajectory_transport", message.compact)
+        self.assertTrue(message.trajectory_snapshot["complete"])
+        self.assertEqual(1, message.trajectory_snapshot["trajectory"]["points"][2]["segment_id"])
+
     def test_unknown_major_schema_is_rejected(self) -> None:
         with self.assertRaises(ValueError):
             models.normalize_message(

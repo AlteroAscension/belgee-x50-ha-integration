@@ -115,6 +115,55 @@ def _decode_research_transport(transport: Any) -> dict[str, Any] | None:
     return deepcopy(transport)
 
 
+def _decode_trajectory_transport(transport: Any) -> dict[str, Any] | None:
+    """Decode one bounded, immutable dead-reckoning trajectory snapshot."""
+    if not isinstance(transport, dict):
+        return None
+    if transport.get("schema") != "x50.virtual-trajectory-transport.v1":
+        return None
+    snapshot_id = str(transport.get("snapshot_id") or "")
+    if not snapshot_id or len(snapshot_id) > 160:
+        return None
+    if transport.get("codec") != "gzip+base64":
+        return None
+    encoded = transport.get("payload_b64")
+    # A telemetry webhook must remain bounded even when a bad peer is paired.
+    if not isinstance(encoded, str) or not encoded or len(encoded) > 700_000:
+        return None
+    try:
+        decoded = base64.b64decode(encoded, validate=True)
+        if len(decoded) > 520_000:
+            return None
+        with gzip.GzipFile(fileobj=__import__("io").BytesIO(decoded)) as stream:
+            raw = stream.read(2_100_000)
+            if stream.read(1):
+                return None
+        trajectory = json.loads(raw.decode("utf-8"))
+    except (ValueError, TypeError, OSError, EOFError, json.JSONDecodeError):
+        return None
+    if not isinstance(trajectory, dict):
+        return None
+    if str(trajectory.get("trajectory_id") or "") != snapshot_id:
+        return None
+    points = trajectory.get("points")
+    if not isinstance(points, list) or len(points) > 10_000:
+        return None
+    # Validate enough for safe rendering while retaining optional v1 fields.
+    for point in points:
+        if not isinstance(point, dict):
+            return None
+        if finite(point.get("x_m")) is None or finite(point.get("y_m")) is None:
+            return None
+    return {
+        "schema": "x50.virtual-trajectory.v2",
+        "snapshot_id": snapshot_id,
+        "available": True,
+        "complete": bool(transport.get("complete", False)),
+        "observed_at_ms": integer(transport.get("published_at_ms"), 0),
+        "trajectory": trajectory,
+    }
+
+
 @dataclass(slots=True)
 class NormalizedMessage:
     """Compact state plus an optional heavy immutable route snapshot."""
@@ -129,6 +178,7 @@ class NormalizedMessage:
     compact: dict[str, Any]
     route_transport: dict[str, Any] | None
     route_snapshot: dict[str, Any] | None
+    trajectory_snapshot: dict[str, Any] | None
     research_diagnostics: dict[str, Any] | None
 
 
@@ -176,12 +226,14 @@ def normalize_message(
     route_transport_navigation = None
     route_transport_relay = None
     research_transport = compact.pop("research_transport", None)
+    trajectory_transport = compact.pop("trajectory_transport", None)
     if isinstance(navigation, dict):
         route_transport_navigation = navigation.pop("route_transport", None)
     if isinstance(relay, dict):
         route_transport_relay = relay.pop("route_transport", None)
     route_transport = route_transport_navigation or route_transport_relay
     route_snapshot = _decode_route_transport(route_transport)
+    trajectory_snapshot = _decode_trajectory_transport(trajectory_transport)
     research_diagnostics = _decode_research_transport(research_transport)
 
     compact["_x50"] = {
@@ -204,6 +256,7 @@ def normalize_message(
         compact=compact,
         route_transport=deepcopy(route_transport) if route_snapshot is not None else None,
         route_snapshot=route_snapshot,
+        trajectory_snapshot=trajectory_snapshot,
         research_diagnostics=research_diagnostics,
     )
 

@@ -24,6 +24,7 @@ from .const import (
     DOMAIN,
     EVENT_ROUTE_SNAPSHOT,
     EVENT_TELEMETRY,
+    EVENT_TRAJECTORY_SNAPSHOT,
 )
 from .coordinator import X50Coordinator
 from .models import normalize_message
@@ -88,6 +89,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     "installation_id": installation_id,
                     "device_kind": message.device_kind,
                     **message.route_snapshot,
+                },
+            )
+        if message.trajectory_snapshot is not None:
+            hass.bus.async_fire(
+                EVENT_TRAJECTORY_SNAPSHOT,
+                {
+                    "entry_id": entry.entry_id,
+                    "installation_id": installation_id,
+                    "device_kind": message.device_kind,
+                    **message.trajectory_snapshot,
                 },
             )
         return web.Response(status=202, text="accepted")

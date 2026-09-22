@@ -46,6 +46,7 @@ MAX_GATEWAY_POLL_SECONDS = 300
 
 EVENT_TELEMETRY = "belgee_x50_telemetry"
 EVENT_ROUTE_SNAPSHOT = "belgee_x50_route_snapshot"
+EVENT_TRAJECTORY_SNAPSHOT = "belgee_x50_trajectory_snapshot"
 EVENT_RESEARCH_DIAGNOSTICS = "belgee_x50_research_diagnostics"
 
 DATA_COORDINATOR = "coordinator"

@@ -25,6 +25,7 @@ from .const import (
     DOMAIN,
     EVENT_ROUTE_SNAPSHOT,
     EVENT_RESEARCH_DIAGNOSTICS,
+    EVENT_TRAJECTORY_SNAPSHOT,
 )
 from .gateway import (
     gateway_headers,
@@ -120,6 +121,7 @@ class X50Coordinator(DataUpdateCoordinator[dict[str, Any]]):
             self.last_gateway_message = message
             self.last_transport_error = None
             self._apply(message, "gateway")
+            self._fire_trajectory_event(message)
             await self._async_sync_gateway_route(session, base_url, token, raw)
         except Exception as error:  # HA reports the actionable detail in diagnostics.
             self.last_transport_error = f"{type(error).__name__}: {error}"
@@ -206,6 +208,19 @@ class X50Coordinator(DataUpdateCoordinator[dict[str, Any]]):
                 "research": self.last_research_diagnostics,
                 "simulator_compat": simulator_trip_diagnostics(message),
             }
+        )
+
+    def _fire_trajectory_event(self, message: NormalizedMessage) -> None:
+        if message.trajectory_snapshot is None:
+            return
+        self.hass.bus.async_fire(
+            EVENT_TRAJECTORY_SNAPSHOT,
+            {
+                "entry_id": self.entry.entry_id,
+                "installation_id": self.installation_id,
+                "device_kind": message.device_kind,
+                **message.trajectory_snapshot,
+            },
         )
 
     def _relay_is_fresh(self) -> bool:
