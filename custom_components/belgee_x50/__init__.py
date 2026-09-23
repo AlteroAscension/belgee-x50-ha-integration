@@ -92,6 +92,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 },
             )
         if message.trajectory_snapshot is not None:
+            coordinator.store_trajectory(message)
             hass.bus.async_fire(
                 EVENT_TRAJECTORY_SNAPSHOT,
                 {

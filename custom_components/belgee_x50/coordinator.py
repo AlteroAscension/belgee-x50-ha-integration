@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
+from copy import deepcopy
 import time
 from typing import Any
 
@@ -83,6 +84,7 @@ class X50Coordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.last_transport_error: str | None = None
         self.last_gateway_route_revision = ""
         self.last_research_diagnostics: dict[str, Any] | None = None
+        self.trajectory_snapshots: dict[str, dict[str, Any]] = {}
         self.research_samples_received = 0
         self.async_set_updated_data({"summary": {}, "raw": {}})
 
@@ -213,6 +215,7 @@ class X50Coordinator(DataUpdateCoordinator[dict[str, Any]]):
     def _fire_trajectory_event(self, message: NormalizedMessage) -> None:
         if message.trajectory_snapshot is None:
             return
+        self.store_trajectory(message)
         self.hass.bus.async_fire(
             EVENT_TRAJECTORY_SNAPSHOT,
             {
@@ -222,6 +225,27 @@ class X50Coordinator(DataUpdateCoordinator[dict[str, Any]]):
                 **message.trajectory_snapshot,
             },
         )
+
+    def store_trajectory(self, message: NormalizedMessage) -> None:
+        """Keep bounded decoded snapshots for authenticated add-on readers."""
+        snapshot = message.trajectory_snapshot
+        if snapshot is None:
+            return
+        snapshot_id = str(snapshot.get("snapshot_id", "")).strip()
+        if not snapshot_id:
+            return
+        self.trajectory_snapshots.pop(snapshot_id, None)
+        self.trajectory_snapshots[snapshot_id] = deepcopy(snapshot)
+        while len(self.trajectory_snapshots) > 50:
+            self.trajectory_snapshots.pop(next(iter(self.trajectory_snapshots)))
+
+    def trajectory_snapshot(self, snapshot_id: str | None = None) -> dict[str, Any] | None:
+        if snapshot_id:
+            snapshot = self.trajectory_snapshots.get(snapshot_id)
+        else:
+            latest_id = next(reversed(self.trajectory_snapshots), None)
+            snapshot = self.trajectory_snapshots.get(latest_id) if latest_id else None
+        return deepcopy(snapshot) if snapshot is not None else None
 
     def _relay_is_fresh(self) -> bool:
         if self.last_relay_message is None:

@@ -4,6 +4,8 @@
 
 - Transfer complete 2GIS route snapshots through the existing route channel,
   alongside MapKit, for the simulator trip journal.
+- Retain received steering snapshots behind an authenticated, read-only API so
+  the simulator can retrieve the same trajectory delivered by Relay.
 
 ## 0.5.1
 
