@@ -111,6 +111,13 @@ class NormalizeTest(unittest.TestCase):
         self.assertEqual(26175.4, compatibility["odometer_km"])
         self.assertEqual(transport, compatibility["fake_nav"]["route_transport"])
 
+    def test_simulator_compatibility_exposes_steering_angle(self) -> None:
+        self.fixture["steering_wheel"] = {"angle_deg": -8.5, "fresh": True}
+        message = models.normalize_message(self.fixture, "car-main")
+        compatibility = models.simulator_trip_diagnostics(message)
+        self.assertEqual(-8.5, compatibility["fake_nav"]["steering_angle_deg"])
+        self.assertTrue(compatibility["fake_nav"]["steering_fresh"])
+
     def test_research_is_removed_from_entity_payload(self) -> None:
         self.fixture["research_transport"] = {
             "schema": "x50.vendor-research.v1",

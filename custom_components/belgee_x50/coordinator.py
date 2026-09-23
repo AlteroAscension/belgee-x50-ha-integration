@@ -247,6 +247,22 @@ class X50Coordinator(DataUpdateCoordinator[dict[str, Any]]):
             snapshot = self.trajectory_snapshots.get(latest_id) if latest_id else None
         return deepcopy(snapshot) if snapshot is not None else None
 
+    def trajectory_snapshots_list(self) -> list[dict[str, Any]]:
+        """Return bounded metadata for snapshots retained for add-on consumers."""
+        result = []
+        for snapshot in self.trajectory_snapshots.values():
+            trajectory = snapshot.get("trajectory", {})
+            points = trajectory.get("points", [])
+            result.append({
+                "snapshot_id": snapshot.get("snapshot_id"),
+                "started_at_ms": trajectory.get("started_at_ms"),
+                "ended_at_ms": trajectory.get("ended_at_ms"),
+                "point_count": trajectory.get("point_count", len(points)),
+                "complete": bool(snapshot.get("complete", False)),
+                "observed_at_ms": snapshot.get("observed_at_ms", 0),
+            })
+        return result
+
     def _relay_is_fresh(self) -> bool:
         if self.last_relay_message is None:
             return False

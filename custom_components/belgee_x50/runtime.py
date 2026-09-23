@@ -7,7 +7,11 @@ from homeassistant.core import HomeAssistant
 from .const import DATA_PAIRING_MANAGER, DOMAIN
 from .pairing import PairingManager
 from .pairing_http import X50PairingClaimView, X50PairingStatusView
-from .trajectory_http import X50TrajectoryLatestView
+from .trajectory_http import (
+    X50TrajectoryLatestView,
+    X50TrajectoryListView,
+    X50TrajectoryView,
+)
 
 
 def ensure_pairing_runtime(hass: HomeAssistant) -> PairingManager:
@@ -26,4 +30,6 @@ def ensure_pairing_runtime(hass: HomeAssistant) -> PairingManager:
     hass.http.register_view(X50PairingClaimView)
     hass.http.register_view(X50PairingStatusView)
     hass.http.register_view(X50TrajectoryLatestView)
+    hass.http.register_view(X50TrajectoryListView)
+    hass.http.register_view(X50TrajectoryView)
     return manager

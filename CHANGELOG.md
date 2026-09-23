@@ -1,11 +1,17 @@
 # Changelog
 
-## Unreleased
+## 0.6.2
 
+- Expose authenticated list and per-ID read endpoints for retained steering
+  trajectory snapshots so the HA simulator can import every trip trace.
+- Forward steering angle and freshness through the simulator compatibility
+  diagnostics channel without adding large snapshots to entity attributes.
 - Transfer complete 2GIS route snapshots through the existing route channel,
   alongside MapKit, for the simulator trip journal.
 - Retain received steering snapshots behind an authenticated, read-only API so
   the simulator can retrieve the same trajectory delivered by Relay.
+
+## Unreleased
 
 ## 0.5.1
 

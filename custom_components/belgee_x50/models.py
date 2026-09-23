@@ -268,6 +268,10 @@ def simulator_trip_diagnostics(message: NormalizedMessage) -> dict[str, Any]:
         navigation = {}
     if message.route_transport is not None:
         navigation["route_transport"] = deepcopy(message.route_transport)
+    steering = message.compact.get("steering_wheel")
+    if isinstance(steering, dict):
+        navigation["steering_angle_deg"] = finite(steering.get("angle_deg"))
+        navigation["steering_fresh"] = bool(steering.get("fresh", False))
     summary = compact_summary(message.compact)
     return {
         "sample_timestamp_ms": message.sample_time_ms,
