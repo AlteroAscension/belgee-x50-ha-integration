@@ -6,6 +6,7 @@ import base64
 import gzip
 import importlib.util
 import json
+import hashlib
 from pathlib import Path
 import sys
 import unittest
@@ -158,6 +159,23 @@ class NormalizeTest(unittest.TestCase):
         self.assertNotIn("trajectory_transport", message.compact)
         self.assertTrue(message.trajectory_snapshot["complete"])
         self.assertEqual(1, message.trajectory_snapshot["trajectory"]["points"][2]["segment_id"])
+
+    def test_trip_journal_chunk_is_decoded_out_of_compact_telemetry(self) -> None:
+        data = b"small diagnostic archive chunk"
+        self.fixture["trip_journal_transport"] = {
+            "schema": "x50.trip-journal-chunk.v1",
+            "id": "20260924-150707-a1b2c3d4",
+            "offset": 0,
+            "total_bytes": len(data),
+            "chunk_bytes": len(data),
+            "chunk_b64": base64.b64encode(data).decode("ascii"),
+            "sha256": hashlib.sha256(data).hexdigest(),
+            "complete": True,
+        }
+        message = models.normalize_message(self.fixture, "car-main")
+        self.assertNotIn("trip_journal_transport", message.compact)
+        self.assertEqual(data, message.trip_journal_chunk["chunk"])
+        self.assertTrue(message.trip_journal_chunk["complete"])
 
     def test_unknown_major_schema_is_rejected(self) -> None:
         with self.assertRaises(ValueError):

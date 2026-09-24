@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.3
+
+- Receive Navigation full-trip diagnostic journals in verified, idempotent chunks.
+- Keep large journal archives on HA storage instead of entity attributes and add authenticated list/download endpoints.
+- Publish `belgee_x50_trip_journal_received` after each accepted chunk.
+
 ## 0.6.2
 
 - Expose authenticated list and per-ID read endpoints for retained steering

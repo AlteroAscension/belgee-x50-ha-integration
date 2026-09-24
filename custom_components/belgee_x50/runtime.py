@@ -11,6 +11,8 @@ from .trajectory_http import (
     X50TrajectoryLatestView,
     X50TrajectoryListView,
     X50TrajectoryView,
+    X50TripJournalListView,
+    X50TripJournalView,
 )
 
 
@@ -32,4 +34,6 @@ def ensure_pairing_runtime(hass: HomeAssistant) -> PairingManager:
     hass.http.register_view(X50TrajectoryLatestView)
     hass.http.register_view(X50TrajectoryListView)
     hass.http.register_view(X50TrajectoryView)
+    hass.http.register_view(X50TripJournalListView)
+    hass.http.register_view(X50TripJournalView)
     return manager

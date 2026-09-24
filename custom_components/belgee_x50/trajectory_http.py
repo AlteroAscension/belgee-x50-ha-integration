@@ -6,6 +6,7 @@ from aiohttp import web
 from homeassistant.components.http import HomeAssistantView
 
 from .const import DATA_COORDINATOR, DOMAIN
+from .trip_journal import journal_directory, list_journals
 
 
 class X50TrajectoryLatestView(HomeAssistantView):
@@ -63,3 +64,49 @@ class X50TrajectoryView(HomeAssistantView):
                 if snapshot is not None:
                     return web.json_response(snapshot)
         raise web.HTTPNotFound(text="trajectory_not_found")
+
+
+class X50TripJournalListView(HomeAssistantView):
+    """List complete diagnostic journals retained in HA's config directory."""
+
+    url = "/api/belgee_x50/trip-journals"
+    name = "api:belgee_x50:trip_journals"
+    requires_auth = True
+
+    async def get(self, request: web.Request) -> web.Response:
+        hass = request.app["hass"]
+        result = []
+        for entry_data in hass.data.get(DOMAIN, {}).values():
+            if not isinstance(entry_data, dict):
+                continue
+            installation_id = entry_data.get("installation_id")
+            if installation_id:
+                result.extend(list_journals(hass.config.config_dir, installation_id))
+        result.sort(key=lambda item: int(item.get("modified_ms") or 0))
+        return web.json_response({"ok": True, "journals": result})
+
+
+class X50TripJournalView(HomeAssistantView):
+    """Download one completed compressed journal using a HA bearer token."""
+
+    url = "/api/belgee_x50/trip-journals/{trip_id}"
+    name = "api:belgee_x50:trip_journal"
+    requires_auth = True
+
+    async def get(self, request: web.Request, trip_id: str) -> web.Response:
+        hass = request.app["hass"]
+        if not trip_id or not trip_id.replace("-", "").isalnum() or len(trip_id) > 40:
+            raise web.HTTPBadRequest(text="invalid_trip_id")
+        for entry_data in hass.data.get(DOMAIN, {}).values():
+            if not isinstance(entry_data, dict):
+                continue
+            installation_id = entry_data.get("installation_id")
+            if not installation_id:
+                continue
+            path = journal_directory(hass.config.config_dir, installation_id) / f"{trip_id}.jsonl.gz"
+            if path.is_file():
+                return web.FileResponse(path, headers={
+                    "Content-Type": "application/gzip",
+                    "Content-Disposition": f'attachment; filename="{trip_id}.jsonl.gz"',
+                })
+        raise web.HTTPNotFound(text="trip_journal_not_found")

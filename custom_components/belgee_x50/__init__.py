@@ -25,10 +25,12 @@ from .const import (
     EVENT_ROUTE_SNAPSHOT,
     EVENT_TELEMETRY,
     EVENT_TRAJECTORY_SNAPSHOT,
+    EVENT_TRIP_JOURNAL,
 )
 from .coordinator import X50Coordinator
 from .models import normalize_message
 from .runtime import ensure_pairing_runtime
+from .trip_journal import store_chunk
 
 PLATFORM_TYPES = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.DEVICE_TRACKER]
 
@@ -67,6 +69,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             return web.Response(status=400, text="invalid payload")
         if message.installation_id != installation_id:
             return web.Response(status=403, text="installation mismatch")
+        if message.trip_journal_chunk is not None:
+            try:
+                receipt = await hass.async_add_executor_job(
+                    store_chunk, hass.config.config_dir, installation_id,
+                    message.trip_journal_chunk,
+                )
+            except (OSError, ValueError) as error:
+                return web.Response(status=409, text=str(error))
+            hass.bus.async_fire(EVENT_TRIP_JOURNAL, {
+                "entry_id": entry.entry_id,
+                "installation_id": installation_id,
+                "device_id": message.device_id,
+                "device_kind": message.device_kind,
+                "transport": transport,
+                **receipt,
+            })
         accepted = coordinator.async_ingest(message, transport)
         if not accepted:
             return web.Response(status=202, text="ignored in gateway mode")
@@ -121,6 +139,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         base_url = get_url(hass, prefer_external=True)
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {
         DATA_COORDINATOR: coordinator,
+        "installation_id": installation_id,
         DATA_WEBHOOK_URL: f"{base_url}/api/webhook/{webhook_id}",
     }
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORM_TYPES)

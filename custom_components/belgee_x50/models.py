@@ -8,6 +8,7 @@ import base64
 import gzip
 import json
 import math
+import re
 import time
 from typing import Any
 
@@ -164,6 +165,38 @@ def _decode_trajectory_transport(transport: Any) -> dict[str, Any] | None:
     }
 
 
+def _decode_trip_journal_transport(transport: Any) -> dict[str, Any] | None:
+    """Validate one idempotent binary chunk of a full Navigation trip journal."""
+    if not isinstance(transport, dict) or transport.get("schema") != "x50.trip-journal-chunk.v1":
+        return None
+    trip_id = str(transport.get("id") or "")
+    encoded = transport.get("chunk_b64")
+    offset = integer(transport.get("offset"), -1)
+    total = integer(transport.get("total_bytes"), 0)
+    size = integer(transport.get("chunk_bytes"), -1)
+    digest = str(transport.get("sha256") or "")
+    if not re.fullmatch(r"\d{8}-\d{6}-[0-9a-f]{8}", trip_id):
+        return None
+    if not isinstance(encoded, str) or not encoded or len(encoded) > 140_000:
+        return None
+    if total <= 0 or total > 256 * 1024 * 1024 or offset < 0 or offset % (96 * 1024):
+        return None
+    try:
+        chunk = base64.b64decode(encoded, validate=True)
+    except (ValueError, TypeError):
+        return None
+    if len(chunk) != size or size <= 0 or size > 96 * 1024 or offset + size > total:
+        return None
+    if bool(transport.get("complete")) != (offset + size == total):
+        return None
+    complete = bool(transport.get("complete"))
+    if (complete and not re.fullmatch(r"[0-9a-f]{64}", digest)) or (not complete and digest):
+        return None
+    return {"id": trip_id, "offset": offset, "total_bytes": total,
+            "chunk_bytes": size, "chunk": chunk, "sha256": digest,
+            "complete": complete}
+
+
 @dataclass(slots=True)
 class NormalizedMessage:
     """Compact state plus an optional heavy immutable route snapshot."""
@@ -179,6 +212,7 @@ class NormalizedMessage:
     route_transport: dict[str, Any] | None
     route_snapshot: dict[str, Any] | None
     trajectory_snapshot: dict[str, Any] | None
+    trip_journal_chunk: dict[str, Any] | None
     research_diagnostics: dict[str, Any] | None
 
 
@@ -227,6 +261,7 @@ def normalize_message(
     route_transport_relay = None
     research_transport = compact.pop("research_transport", None)
     trajectory_transport = compact.pop("trajectory_transport", None)
+    trip_journal_transport = compact.pop("trip_journal_transport", None)
     if isinstance(navigation, dict):
         route_transport_navigation = navigation.pop("route_transport", None)
     if isinstance(relay, dict):
@@ -234,6 +269,7 @@ def normalize_message(
     route_transport = route_transport_navigation or route_transport_relay
     route_snapshot = _decode_route_transport(route_transport)
     trajectory_snapshot = _decode_trajectory_transport(trajectory_transport)
+    trip_journal_chunk = _decode_trip_journal_transport(trip_journal_transport)
     research_diagnostics = _decode_research_transport(research_transport)
 
     compact["_x50"] = {
@@ -257,6 +293,7 @@ def normalize_message(
         route_transport=deepcopy(route_transport) if route_snapshot is not None else None,
         route_snapshot=route_snapshot,
         trajectory_snapshot=trajectory_snapshot,
+        trip_journal_chunk=trip_journal_chunk,
         research_diagnostics=research_diagnostics,
     )
 
