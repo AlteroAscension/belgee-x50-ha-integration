@@ -144,6 +144,15 @@ class NormalizeTest(unittest.TestCase):
                 {"x_m": 5, "y_m": 1, "segment_id": 0},
                 {"x_m": 9, "y_m": 4, "segment_id": 1},
             ],
+            "inertial": {
+                "schema": "x50.inertial-trajectory.v1",
+                "anchored": True,
+                "points": [
+                    {"lat": 55.75, "lon": 37.61, "heading_deg": 90,
+                     "fake_lat": 55.75, "fake_lon": 37.61,
+                     "compass_state": "accepted"},
+                ],
+            },
         }
         self.fixture["trajectory_transport"] = {
             "schema": "x50.virtual-trajectory-transport.v1",
@@ -159,6 +168,8 @@ class NormalizeTest(unittest.TestCase):
         self.assertNotIn("trajectory_transport", message.compact)
         self.assertTrue(message.trajectory_snapshot["complete"])
         self.assertEqual(1, message.trajectory_snapshot["trajectory"]["points"][2]["segment_id"])
+        self.assertEqual("accepted", message.trajectory_snapshot["trajectory"]
+                         ["inertial"]["points"][0]["compass_state"])
 
     def test_trip_journal_chunk_is_decoded_out_of_compact_telemetry(self) -> None:
         data = b"small diagnostic archive chunk"

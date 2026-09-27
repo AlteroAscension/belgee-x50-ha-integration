@@ -136,7 +136,7 @@ def _decode_trajectory_transport(transport: Any) -> dict[str, Any] | None:
         if len(decoded) > 520_000:
             return None
         with gzip.GzipFile(fileobj=__import__("io").BytesIO(decoded)) as stream:
-            raw = stream.read(2_100_000)
+            raw = stream.read(3_500_000)
             if stream.read(1):
                 return None
         trajectory = json.loads(raw.decode("utf-8"))
@@ -155,6 +155,19 @@ def _decode_trajectory_transport(transport: Any) -> dict[str, Any] | None:
             return None
         if finite(point.get("x_m")) is None or finite(point.get("y_m")) is None:
             return None
+    inertial = trajectory.get("inertial")
+    if inertial is not None:
+        if not isinstance(inertial, dict) or inertial.get("schema") != "x50.inertial-trajectory.v1":
+            return None
+        inertial_points = inertial.get("points")
+        if not isinstance(inertial_points, list) or len(inertial_points) > 4000:
+            return None
+        for point in inertial_points:
+            if not isinstance(point, dict):
+                return None
+            lat, lon = finite(point.get("lat")), finite(point.get("lon"))
+            if lat is None or lon is None or abs(lat) > 90 or abs(lon) > 180:
+                return None
     return {
         "schema": "x50.virtual-trajectory.v2",
         "snapshot_id": snapshot_id,
