@@ -107,8 +107,6 @@ will be published only after they become stable public contracts.
 
 ## Status
 
-Read-only preview `0.6.3`: retained steering trajectories, chunked full-trip diagnostic archive storage, independent outbound transport, opt-in research
-diagnostics and protocol tests
-are present.
-Runtime validation on a disposable Home Assistant installation is required
-before publishing the first tagged release.
+Read-only preview `0.6.4`: retained steering and inertial trajectories, chunked
+full-trip diagnostic archive storage, independent outbound transport, opt-in
+research diagnostics and protocol tests are present.
