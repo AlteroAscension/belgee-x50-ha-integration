@@ -43,9 +43,13 @@ def _store_chunk(config_dir: str, installation_id: str, chunk: dict[str, Any]) -
     final_path = directory / f"{trip_id}.jsonl.gz"
     partial_path = directory / f"{trip_id}.jsonl.gz.part"
     if final_path.exists():
-        if final_path.stat().st_size == total and _sha256(final_path) == expected_hash:
-            return {"id": trip_id, "complete": True, "duplicate": True,
-                    "received_bytes": total, "total_bytes": total}
+        if final_path.stat().st_size == total:
+            with final_path.open("rb") as stream:
+                stream.seek(offset)
+                same_chunk = stream.read(len(payload)) == payload
+            if same_chunk and (not expected_hash or _sha256(final_path) == expected_hash):
+                return {"id": trip_id, "complete": True, "duplicate": True,
+                        "received_bytes": total, "total_bytes": total}
         raise ValueError("journal_already_finalized_with_different_content")
 
     current_size = partial_path.stat().st_size if partial_path.exists() else 0
@@ -74,7 +78,8 @@ def _store_chunk(config_dir: str, installation_id: str, chunk: dict[str, Any]) -
             "received_bytes": current_size, "total_bytes": total}
 
 
-def list_journals(config_dir: str, installation_id: str) -> list[dict[str, Any]]:
+def list_journals(config_dir: str, installation_id: str,
+                  include_partial: bool = False) -> list[dict[str, Any]]:
     directory = journal_directory(config_dir, installation_id)
     if not directory.is_dir():
         return []
@@ -83,6 +88,15 @@ def list_journals(config_dir: str, installation_id: str) -> list[dict[str, Any]]
         result.append({"id": path.name[:-9], "size_bytes": path.stat().st_size,
                        "sha256": _sha256(path), "complete": True,
                        "modified_ms": int(path.stat().st_mtime * 1000)})
+    if include_partial:
+        completed = {item["id"] for item in result}
+        for path in directory.glob("*.jsonl.gz.part"):
+            journal_id = path.name[:-14]
+            if journal_id not in completed:
+                result.append({"id": journal_id, "size_bytes": path.stat().st_size,
+                               "complete": False,
+                               "modified_ms": int(path.stat().st_mtime * 1000)})
+        result.sort(key=lambda item: item["modified_ms"])
     return result
 
 

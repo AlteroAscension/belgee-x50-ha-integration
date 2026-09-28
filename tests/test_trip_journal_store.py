@@ -21,6 +21,22 @@ SPEC.loader.exec_module(store)
 
 
 class TripJournalStoreTest(unittest.TestCase):
+    def test_partial_journals_are_opt_in_and_hidden_after_completion(self) -> None:
+        trip_id = "20260928-133647-1d1e42df"
+        with tempfile.TemporaryDirectory() as config_dir:
+            directory = store.journal_directory(config_dir, "car-main")
+            directory.mkdir(parents=True)
+            (directory / f"{trip_id}.jsonl.gz.part").write_bytes(b"partial")
+            self.assertEqual([], store.list_journals(config_dir, "car-main"))
+            entries = store.list_journals(config_dir, "car-main", include_partial=True)
+            self.assertEqual([(trip_id, False, 7)],
+                             [(item["id"], item["complete"], item["size_bytes"])
+                              for item in entries])
+            (directory / f"{trip_id}.jsonl.gz").write_bytes(b"complete")
+            entries = store.list_journals(config_dir, "car-main", include_partial=True)
+            self.assertEqual([(trip_id, True)],
+                             [(item["id"], item["complete"]) for item in entries])
+
     def test_chunks_are_durable_ordered_and_retry_safe(self) -> None:
         first = b"a" * (96 * 1024)
         last = b"tail"
@@ -55,6 +71,16 @@ class TripJournalStoreTest(unittest.TestCase):
                 "complete": True,
             })
             self.assertTrue(retry["duplicate"])
+            early_retry = store.store_chunk(config_dir, "car-main", {
+                "id": trip_id, "offset": 0, "total_bytes": len(content),
+                "chunk": first, "sha256": "", "complete": False,
+            })
+            self.assertTrue(early_retry["duplicate"])
+            with self.assertRaisesRegex(ValueError, "different_content"):
+                store.store_chunk(config_dir, "car-main", {
+                    "id": trip_id, "offset": 0, "total_bytes": len(content),
+                    "chunk": b"b" * len(first), "sha256": "", "complete": False,
+                })
             self.assertEqual(trip_id, store.list_journals(config_dir, "car-main")[0]["id"])
 
 

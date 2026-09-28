@@ -8,6 +8,7 @@ from .const import DATA_PAIRING_MANAGER, DOMAIN
 from .pairing import PairingManager
 from .pairing_http import X50PairingClaimView, X50PairingStatusView
 from .trajectory_http import (
+    X50DiagnosticLogsView,
     X50TrajectoryLatestView,
     X50TrajectoryListView,
     X50TrajectoryView,
@@ -36,4 +37,5 @@ def ensure_pairing_runtime(hass: HomeAssistant) -> PairingManager:
     hass.http.register_view(X50TrajectoryView)
     hass.http.register_view(X50TripJournalListView)
     hass.http.register_view(X50TripJournalView)
+    hass.http.register_view(X50DiagnosticLogsView)
     return manager

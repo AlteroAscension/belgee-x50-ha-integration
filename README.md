@@ -107,6 +107,13 @@ will be published only after they become stable public contracts.
 
 ## Status
 
-Read-only preview `0.6.4`: retained steering and inertial trajectories, chunked
+Read-only preview `0.6.5`: retained steering and inertial trajectories, chunked
 full-trip diagnostic archive storage, independent outbound transport, opt-in
 research diagnostics and protocol tests are present.
+
+Authenticated read-only API for the HA Simulator diagnostics page:
+`GET /api/belgee_x50/trip-journals?include_partial=1` lists completed and
+in-progress archives; `GET /api/belgee_x50/trip-journals/<id>?partial=1`
+downloads an in-progress archive. Without the query flag, only completed
+archives are listed or downloaded. `GET /api/belgee_x50/diagnostic-logs`
+returns the latest bounded Gateway and Relay log lines from telemetry.

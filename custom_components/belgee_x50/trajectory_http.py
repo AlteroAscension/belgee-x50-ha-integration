@@ -67,7 +67,7 @@ class X50TrajectoryView(HomeAssistantView):
 
 
 class X50TripJournalListView(HomeAssistantView):
-    """List complete diagnostic journals retained in HA's config directory."""
+    """List retained journals, optionally including partial uploads."""
 
     url = "/api/belgee_x50/trip-journals"
     name = "api:belgee_x50:trip_journals"
@@ -81,13 +81,47 @@ class X50TripJournalListView(HomeAssistantView):
                 continue
             installation_id = entry_data.get("installation_id")
             if installation_id:
-                result.extend(list_journals(hass.config.config_dir, installation_id))
+                result.extend(list_journals(
+                    hass.config.config_dir, installation_id,
+                    include_partial=request.query.get("include_partial") == "1"))
         result.sort(key=lambda item: int(item.get("modified_ms") or 0))
         return web.json_response({"ok": True, "journals": result})
 
 
+class X50DiagnosticLogsView(HomeAssistantView):
+    """Return only the bounded Gateway/Relay log rings from current telemetry."""
+
+    url = "/api/belgee_x50/diagnostic-logs"
+    name = "api:belgee_x50:diagnostic_logs"
+    requires_auth = True
+
+    async def get(self, request: web.Request) -> web.Response:
+        sources = []
+        for entry_data in request.app["hass"].data.get(DOMAIN, {}).values():
+            if not isinstance(entry_data, dict):
+                continue
+            coordinator = entry_data.get(DATA_COORDINATOR)
+            data = getattr(coordinator, "data", None)
+            raw = data.get("raw") if isinstance(data, dict) else None
+            if not isinstance(raw, dict):
+                continue
+            metadata = raw.get("_x50")
+            sample_time_ms = metadata.get("sample_time_ms") if isinstance(metadata, dict) else None
+            for name in ("gateway", "relay"):
+                component = raw.get(name)
+                lines = component.get("log_lines") if isinstance(component, dict) else None
+                if isinstance(lines, list):
+                    sources.append({
+                        "installation_id": entry_data.get("installation_id"),
+                        "source": name,
+                        "sample_time_ms": sample_time_ms,
+                        "lines": lines[-100:],
+                    })
+        return web.json_response({"ok": True, "sources": sources})
+
+
 class X50TripJournalView(HomeAssistantView):
-    """Download one completed compressed journal using a HA bearer token."""
+    """Download one completed or partial journal using a HA bearer token."""
 
     url = "/api/belgee_x50/trip-journals/{trip_id}"
     name = "api:belgee_x50:trip_journal"
@@ -103,10 +137,12 @@ class X50TripJournalView(HomeAssistantView):
             installation_id = entry_data.get("installation_id")
             if not installation_id:
                 continue
-            path = journal_directory(hass.config.config_dir, installation_id) / f"{trip_id}.jsonl.gz"
+            suffix = ".jsonl.gz.part" if request.query.get("partial") == "1" else ".jsonl.gz"
+            path = journal_directory(hass.config.config_dir, installation_id) / f"{trip_id}{suffix}"
             if path.is_file():
                 return web.FileResponse(path, headers={
-                    "Content-Type": "application/gzip",
-                    "Content-Disposition": f'attachment; filename="{trip_id}.jsonl.gz"',
+                    "Content-Type": "application/octet-stream" if suffix.endswith("part")
+                                    else "application/gzip",
+                    "Content-Disposition": f'attachment; filename="{trip_id}{suffix}"',
                 })
         raise web.HTTPNotFound(text="trip_journal_not_found")

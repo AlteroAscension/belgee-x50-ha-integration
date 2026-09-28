@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.5
+
+- List and download partial trip-journal uploads through authenticated endpoints while keeping the default completed-only listing.
+- Expose the latest bounded Gateway and Relay log lines through an authenticated diagnostics endpoint for the HA Simulator log page.
+
 ## 0.6.3
 
 - Receive Navigation full-trip diagnostic journals in verified, idempotent chunks.

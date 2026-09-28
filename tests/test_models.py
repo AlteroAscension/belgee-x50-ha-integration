@@ -119,6 +119,17 @@ class NormalizeTest(unittest.TestCase):
         self.assertEqual(-8.5, compatibility["fake_nav"]["steering_angle_deg"])
         self.assertTrue(compatibility["fake_nav"]["steering_fresh"])
 
+    def test_simulator_compatibility_preserves_live_compass_decision(self) -> None:
+        compass = {"raw_deg": 91.2, "valid": True, "elapsed_ms": 12345}
+        step = {"compass_raw_deg": 91.2, "compass_state": "rejected",
+                "compass_residual_deg": 24.0, "compass_allowed_deg": 5.0}
+        self.fixture["navigation"]["compass"] = compass
+        self.fixture["navigation"]["inertial_trajectory"] = {"last_step": step}
+        message = models.normalize_message(self.fixture, "car-main")
+        compatibility = models.simulator_trip_diagnostics(message)
+        self.assertEqual(compass, compatibility["fake_nav"]["compass"])
+        self.assertEqual(step, compatibility["fake_nav"]["inertial_trajectory"]["last_step"])
+
     def test_research_is_removed_from_entity_payload(self) -> None:
         self.fixture["research_transport"] = {
             "schema": "x50.vendor-research.v1",
