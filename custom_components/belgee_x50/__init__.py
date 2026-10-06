@@ -86,19 +86,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 **receipt,
             })
         accepted = coordinator.async_ingest(message, transport)
-        if not accepted:
-            return web.Response(status=202, text="ignored in gateway mode")
-        hass.bus.async_fire(
-            EVENT_TELEMETRY,
-            {
-                "entry_id": entry.entry_id,
-                "installation_id": installation_id,
-                "message_id": message.message_id,
-                "device_kind": message.device_kind,
-                "sample_time_ms": message.sample_time_ms,
-                "compact": coordinator.data["summary"],
-            },
-        )
+        if accepted:
+            hass.bus.async_fire(
+                EVENT_TELEMETRY,
+                {
+                    "entry_id": entry.entry_id,
+                    "installation_id": installation_id,
+                    "message_id": message.message_id,
+                    "device_kind": message.device_kind,
+                    "sample_time_ms": message.sample_time_ms,
+                    "compact": coordinator.data["summary"],
+                },
+            )
         if message.route_snapshot is not None:
             hass.bus.async_fire(
                 EVENT_ROUTE_SNAPSHOT,
@@ -109,8 +108,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     **message.route_snapshot,
                 },
             )
-        if message.trajectory_snapshot is not None:
-            coordinator.store_trajectory(message)
+        if message.trajectory_snapshot is not None and coordinator.store_trajectory(message):
             hass.bus.async_fire(
                 EVENT_TRAJECTORY_SNAPSHOT,
                 {
@@ -120,7 +118,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     **message.trajectory_snapshot,
                 },
             )
-        return web.Response(status=202, text="accepted")
+        return web.Response(status=202, text="accepted" if accepted else "archive accepted; live state unchanged")
 
     webhook.async_register(
         hass,

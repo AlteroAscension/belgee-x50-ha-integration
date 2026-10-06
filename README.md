@@ -107,7 +107,7 @@ will be published only after they become stable public contracts.
 
 ## Status
 
-Read-only preview `0.6.5`: retained steering and inertial trajectories, chunked
+Read-only preview `0.6.6`: retained steering and inertial trajectories, chunked
 full-trip diagnostic archive storage, independent outbound transport, opt-in
 research diagnostics and protocol tests are present.
 

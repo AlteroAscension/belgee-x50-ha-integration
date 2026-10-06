@@ -38,6 +38,7 @@ from .gateway import (
 from .models import (
     NormalizedMessage, compact_summary, normalize_message, simulator_trip_diagnostics,
 )
+from .delivery import is_deferred, snapshot_is_newer
 
 
 class X50Coordinator(DataUpdateCoordinator[dict[str, Any]]):
@@ -165,6 +166,8 @@ class X50Coordinator(DataUpdateCoordinator[dict[str, Any]]):
         self, message: NormalizedMessage, transport: str = "relay"
     ) -> bool:
         """Accept one authenticated push source according to topology."""
+        if is_deferred(message.compact):
+            return False
         if transport == "gateway":
             self.last_gateway_message = message
             if message.research_diagnostics is not None:
@@ -192,7 +195,7 @@ class X50Coordinator(DataUpdateCoordinator[dict[str, Any]]):
             return False
         if self.connection_mode == CONNECTION_AUTO \
                 and transport == "gateway" and self._relay_is_fresh():
-            return True
+            return False
         self._apply(message, transport)
         return True
 
@@ -215,7 +218,8 @@ class X50Coordinator(DataUpdateCoordinator[dict[str, Any]]):
     def _fire_trajectory_event(self, message: NormalizedMessage) -> None:
         if message.trajectory_snapshot is None:
             return
-        self.store_trajectory(message)
+        if not self.store_trajectory(message):
+            return
         self.hass.bus.async_fire(
             EVENT_TRAJECTORY_SNAPSHOT,
             {
@@ -226,18 +230,21 @@ class X50Coordinator(DataUpdateCoordinator[dict[str, Any]]):
             },
         )
 
-    def store_trajectory(self, message: NormalizedMessage) -> None:
+    def store_trajectory(self, message: NormalizedMessage) -> bool:
         """Keep bounded decoded snapshots for authenticated add-on readers."""
         snapshot = message.trajectory_snapshot
         if snapshot is None:
-            return
+            return False
         snapshot_id = str(snapshot.get("snapshot_id", "")).strip()
         if not snapshot_id:
-            return
+            return False
+        if not snapshot_is_newer(snapshot, self.trajectory_snapshots.get(snapshot_id)):
+            return False
         self.trajectory_snapshots.pop(snapshot_id, None)
         self.trajectory_snapshots[snapshot_id] = deepcopy(snapshot)
         while len(self.trajectory_snapshots) > 50:
             self.trajectory_snapshots.pop(next(iter(self.trajectory_snapshots)))
+        return True
 
     def trajectory_snapshot(self, snapshot_id: str | None = None) -> dict[str, Any] | None:
         if snapshot_id:

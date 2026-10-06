@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.6
+
+- Keep deferred Relay uploads out of live state and transport freshness while acknowledging and retaining journal chunks, routes and trajectories in every connection mode.
+- Prevent late active or older trajectory snapshots from replacing completed/newer snapshots, including duplicate event suppression.
+- Preserve compatibility with Navigation's corrected `x50.inertial-trajectory.v1` export.
+
 ## 0.6.5
 
 - List and download partial trip-journal uploads through authenticated endpoints while keeping the default completed-only listing.
